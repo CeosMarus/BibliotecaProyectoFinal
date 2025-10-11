@@ -1,0 +1,112 @@
+package app.dao;
+
+import app.model.SolicitudCompra;
+import app.util.Conexion;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class SolicitudCompraDAO {
+
+    private Connection conn;
+
+    public SolicitudCompraDAO() {
+        conn = Conexion.getConexion();
+    }
+
+    // 🟢 Listar todas las solicitudes activas
+    public List<SolicitudCompra> listar() {
+        List<SolicitudCompra> lista = new ArrayList<>();
+        String sql = "SELECT * FROM SolicitudCompra WHERE estado <> 0"; // Sólo activas
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                SolicitudCompra solicitud = new SolicitudCompra(
+                        rs.getInt("id"),
+                        rs.getDate("fecha"),
+                        rs.getInt("idUsuario"),
+                        rs.getInt("idLibro"),
+                        rs.getInt("cantidad"),
+                        rs.getBigDecimal("costoUnitario").doubleValue(),
+                        rs.getInt("estado")
+                );
+                lista.add(solicitud);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lista;
+    }
+
+    // 🟢 Obtener una solicitud por ID
+    public SolicitudCompra obtenerPorId(int id) {
+        String sql = "SELECT * FROM SolicitudCompra WHERE id = ? AND estado <> 0";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new SolicitudCompra(
+                            rs.getInt("id"),
+                            rs.getDate("fecha"),
+                            rs.getInt("idUsuario"),
+                            rs.getInt("idLibro"),
+                            rs.getInt("cantidad"),
+                            rs.getBigDecimal("costoUnitario").doubleValue(),
+                            rs.getInt("estado")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // 🟢 Insertar nueva solicitud
+    public boolean insertar(SolicitudCompra solicitud) {
+        String sql = "INSERT INTO SolicitudCompra (fecha, idUsuario, idLibro, cantidad, costoUnitario, estado) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDate(1, new java.sql.Date(solicitud.getFecha().getTime()));
+            ps.setInt(2, solicitud.getIdUsuario());
+            ps.setInt(3, solicitud.getIdLibro());
+            ps.setInt(4, solicitud.getCantidad());
+            ps.setBigDecimal(5, new java.math.BigDecimal(solicitud.getCostoUnitario()));
+            ps.setInt(6, solicitud.getEstado());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // 🟢 Actualizar solicitud existente
+    public boolean actualizar(SolicitudCompra solicitud) {
+        String sql = "UPDATE SolicitudCompra SET fecha = ?, idUsuario = ?, idLibro = ?, cantidad = ?, costoUnitario = ?, estado = ? WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDate(1, new java.sql.Date(solicitud.getFecha().getTime()));
+            ps.setInt(2, solicitud.getIdUsuario());
+            ps.setInt(3, solicitud.getIdLibro());
+            ps.setInt(4, solicitud.getCantidad());
+            ps.setBigDecimal(5, new java.math.BigDecimal(solicitud.getCostoUnitario()));
+            ps.setInt(6, solicitud.getEstado());
+            ps.setInt(7, solicitud.getId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // 🟢 Eliminación lógica de una solicitud (estado = 0)
+    public boolean eliminar(int id) {
+        String sql = "UPDATE SolicitudCompra SET estado = 0 WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+}
