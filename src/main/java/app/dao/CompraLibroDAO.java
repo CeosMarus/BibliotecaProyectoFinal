@@ -1,7 +1,7 @@
 package app.dao;
 
 import app.model.CompraLibro;
-import app.utils.DBConnection; // Asumiendo que tienes esta clase para la conexión
+import app.db.Conexion; // ✅ Usar la clase real de conexión
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,11 @@ public class CompraLibroDAO {
     private Connection conn;
 
     public CompraLibroDAO() {
-        conn = DBConnection.getConnection();
+        try {
+            conn = Conexion.getConnection(); // ✅ Cambiar DBConnection por Conexion
+        } catch (SQLException e) {
+            System.err.println("❌ Error al obtener la conexión: " + e.getMessage());
+        }
     }
 
     // 🟢 Insertar nuevo registro
@@ -26,16 +30,16 @@ public class CompraLibroDAO {
             } else {
                 ps.setNull(4, Types.DATE);
             }
-            ps.setInt(5, compra.getEstado()); // 1 por defecto
+            ps.setInt(5, compra.getEstado());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
-            System.err.println("Error al insertar CompraLibro: " + e.getMessage());
+            System.err.println("❌ Error al insertar CompraLibro: " + e.getMessage());
             return false;
         }
     }
 
-    // 🟢 Actualizar registro
+    // 🟡 Actualizar registro
     public boolean actualizar(CompraLibro compra) {
         String sql = "UPDATE CompraLibro SET idSolicitud = ?, proveedor = ?, costoTotal = ?, fechaRecepcion = ?, estado = ? WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -52,12 +56,12 @@ public class CompraLibroDAO {
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
-            System.err.println("Error al actualizar CompraLibro: " + e.getMessage());
+            System.err.println("❌ Error al actualizar CompraLibro: " + e.getMessage());
             return false;
         }
     }
 
-    // 🟢 Obtener lista de registros activos
+    // 🟢 Listar registros activos
     public List<CompraLibro> listarActivos() {
         List<CompraLibro> lista = new ArrayList<>();
         String sql = "SELECT * FROM CompraLibro WHERE estado = 1";
@@ -75,7 +79,7 @@ public class CompraLibroDAO {
                 lista.add(compra);
             }
         } catch (SQLException e) {
-            System.err.println("Error al listar CompraLibro: " + e.getMessage());
+            System.err.println("❌ Error al listar CompraLibro: " + e.getMessage());
         }
         return lista;
     }
@@ -98,7 +102,7 @@ public class CompraLibroDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error al obtener CompraLibro: " + e.getMessage());
+            System.err.println("❌ Error al obtener CompraLibro: " + e.getMessage());
         }
         return null;
     }
@@ -111,7 +115,7 @@ public class CompraLibroDAO {
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
-            System.err.println("Error al eliminar CompraLibro: " + e.getMessage());
+            System.err.println("❌ Error al eliminar CompraLibro: " + e.getMessage());
             return false;
         }
     }

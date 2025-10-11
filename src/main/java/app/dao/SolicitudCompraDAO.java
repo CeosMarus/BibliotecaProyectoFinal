@@ -1,7 +1,7 @@
 package app.dao;
 
 import app.model.SolicitudCompra;
-import app.util.Conexion;
+import app.db.Conexion;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,11 @@ public class SolicitudCompraDAO {
     private Connection conn;
 
     public SolicitudCompraDAO() {
-        conn = Conexion.getConexion();
+        try {
+            conn = Conexion.getConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     // 🟢 Listar todas las solicitudes activas
