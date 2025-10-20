@@ -32,7 +32,7 @@ public class AperturaCajaDAO {
                 if (rs.next()) {
                     int id = rs.getInt(1);
                     caja.setId(id);
-                    JOptionPane.showMessageDialog(null, "✅ Caja abierta correctamente.");
+                    JOptionPane.showMessageDialog(null, "Caja abierta correctamente.");
                     return id;
                 }
             }
@@ -49,7 +49,7 @@ public class AperturaCajaDAO {
             ps.setInt(1, id);
             int filas = ps.executeUpdate();
             if (filas > 0) {
-                JOptionPane.showMessageDialog(null, "✅ Caja cerrada correctamente.");
+                JOptionPane.showMessageDialog(null, "Caja cerrada correctamente.");
                 return true;
             }
         }
@@ -73,7 +73,7 @@ public class AperturaCajaDAO {
             ps.setInt(1, id);
             int filas = ps.executeUpdate();
             if (filas > 0) {
-                JOptionPane.showMessageDialog(null, "✅ Apertura de caja desactivada correctamente.");
+                JOptionPane.showMessageDialog(null, "Apertura de caja desactivada correctamente.");
                 return true;
             }
         }
