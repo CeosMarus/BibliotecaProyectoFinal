@@ -97,7 +97,8 @@ public class UsuariosForm {
         try {
             cboRol.removeAllItems();
             cboRol.addItem(new ComboItem(1, "Admin"));
-            cboRol.addItem(new ComboItem(2, "Operador"));
+            cboRol.addItem(new ComboItem(2, "Bibliotecario"));
+            cboRol.addItem(new ComboItem(3, "Financiero"));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -231,6 +232,7 @@ public class UsuariosForm {
                             u.getUsername(),
                             u.getNombre(),
                             "********", // Ocultamos la contraseña
+                            "********", // Ocultamos la contraseña
                             u.getRol(),
                             u.getEstado() == 1 ? "Activo" : "Inactivo"
                     });
@@ -267,6 +269,7 @@ public class UsuariosForm {
         txtUsername.setText("");
         txtNombre.setText("");
         txtPassword.setText("");
+        txtConfirm.setText("");
         if (cboRol.getItemCount() > 0) cboRol.setSelectedIndex(0);
         cboEstado.setSelectedIndex(0);
         tbUsuarios.clearSelection();
