@@ -83,8 +83,8 @@ public class LoginForm {
     private void abrirMenu() {
         JFrame f = new JFrame("Menú Principal – Librería");
         /** descomentar para asignar el menu correcto luego del login**/
-//        f.setContentPane(new MainMenuForm().panelPrincipal);
-        f.setContentPane(new AperturaCajaView());
+       f.setContentPane(new MainMenuForm().panelPrincipal);
+//        f.setContentPane(new AperturaCajaView());
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.pack();
         f.setLocationRelativeTo(null);

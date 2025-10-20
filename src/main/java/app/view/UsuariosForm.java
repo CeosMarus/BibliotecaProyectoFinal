@@ -11,25 +11,41 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class UsuariosForm {
+    //-----Atributos-----
+    //Panel Principal
     public JPanel panelPrincipal;
+    //Cuadros de texto
     private JTextField txtUsername;
     private JTextField txtNombre;
-    private JTextField txtPassword;
+    //Cuadro de password
+    private JPasswordField txtPassword;
+    private JPasswordField txtConfirm;
+    //Combo Box
     private JComboBox<ComboItem> cboRol;
     private JComboBox<String> cboEstado;
+    //botones
     private JButton btnGuardar;
     private JButton btnActualizar;
     private JButton btnEliminar;
     private JButton btnCargar;
-    private JTable tbUsuarios;
+    private JButton btnLimpiar;
     private JButton btnBuscarUsername; // Nuevo botón
+    //tablas
+    private JTable tbUsuarios;
+    //Check box
+    private JCheckBox chkMostrar;
 
+
+
+    //-----Metodos-----
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
     private final DefaultTableModel model = new DefaultTableModel(
             new Object[]{"ID", "Username", "Nombre", "Password", "Rol", "Estado"}, 0
     );
     private Integer selectedId = null;
+    private char echoPass, echoConf;
 
+    //Vista Principal del formulario de usuarios
     public UsuariosForm() {
         panelPrincipal.setPreferredSize(new Dimension(900, 600));
         tbUsuarios.setModel(model);
@@ -38,12 +54,18 @@ public class UsuariosForm {
         cboEstado.addItem("1 - Activo");
         cboEstado.addItem("0 - Inactivo");
 
+        // show/hide pass
+        echoPass = txtPassword.getEchoChar();
+        echoConf = txtConfirm.getEchoChar();
+        chkMostrar.addActionListener(e -> togglePasswordEcho());
+
         cargarRolesEnCombo();
 
         btnGuardar.addActionListener(e -> onGuardar());
         btnActualizar.addActionListener(e -> onActualizar());
         btnCargar.addActionListener(e -> cargarTabla());
         btnEliminar.addActionListener(e -> onEliminar());
+        btnLimpiar.addActionListener(e -> limpiarFormulario());
         btnBuscarUsername.addActionListener(e -> onBuscarPorUsername()); // Nuevo listener
 
         tbUsuarios.getSelectionModel().addListSelectionListener(e -> {
@@ -67,9 +89,10 @@ public class UsuariosForm {
             cboEstado.setSelectedIndex("Activo".equalsIgnoreCase(estadoTxt) ? 0 : 1);
         });
 
-        cargarTabla();
+        //cargarTabla();
     }
 
+    //Se cargan los roles de los usuarios
     private void cargarRolesEnCombo() {
         try {
             cboRol.removeAllItems();
@@ -90,20 +113,41 @@ public class UsuariosForm {
         }
     }
 
+    private void togglePasswordEcho() {
+        boolean show = chkMostrar.isSelected();
+        txtPassword.setEchoChar(show ? (char)0 : echoPass);
+        txtConfirm.setEchoChar(show ? (char)0 : echoConf);
+    }
+
+    //Se obtienen los datos para guardar un usuario
     private void onGuardar() {
         String username = txtUsername.getText().trim();
         String nombre = txtNombre.getText().trim();
-        String password = txtPassword.getText().trim();
+        //String password = txtPassword.getText().trim();
+        String pass     = new String(txtPassword.getPassword());
+        String confirm  = new String(txtConfirm.getPassword());
         ComboItem rolItem = (ComboItem) cboRol.getSelectedItem();
         int estado = (cboEstado.getSelectedIndex() == 0) ? 1 : 0;
 
-        if (username.isEmpty() || nombre.isEmpty() || password.isEmpty() || rolItem == null) {
+        if (username.length() < 3) {
+            JOptionPane.showMessageDialog(panelPrincipal, "Favor ingresar minimo 3 Caracteres", "Error en Username", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (pass.length() < 6){
+            JOptionPane.showMessageDialog(panelPrincipal, "Favor ingresar una contraseña de al menos 6 caracteres", "Advertencia en Password", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (!pass.equals(confirm)){
+            JOptionPane.showMessageDialog(panelPrincipal, "Las contraseñas no coinciden", "Advertencia en Password", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (username.isEmpty() || nombre.isEmpty() || pass.isEmpty() || confirm.isEmpty() ||rolItem == null) {
             JOptionPane.showMessageDialog(panelPrincipal, "Todos los campos son obligatorios.", "Error de validación", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
-            usuarioDAO.crearUsuario(username, password, nombre, rolItem.getLabel(), estado);
+            usuarioDAO.crearUsuario(username, pass, nombre, rolItem.getLabel(), estado);
             limpiarFormulario();
             cargarTabla();
             JOptionPane.showMessageDialog(panelPrincipal, "Usuario guardado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
@@ -207,6 +251,7 @@ public class UsuariosForm {
                         u.getId(),
                         u.getUsername(),
                         u.getNombre(),
+                        "********", // Ocultamos la contraseña por seguridad
                         "********", // Ocultamos la contraseña por seguridad
                         u.getRol(),
                         u.getEstado() == 1 ? "Activo" : "Inactivo"
