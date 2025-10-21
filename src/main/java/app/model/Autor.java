@@ -5,7 +5,7 @@ public class Autor {
     // 🧾 Atributos
     private int id;
     private String nombre;
-    private String nacionalidad;
+    private String biografia;
     private int estado; // 1 = Activo, 0 = Desactivado
 
     // 🏗️ Constructor vacío
@@ -13,10 +13,10 @@ public class Autor {
     }
 
     // 🏗️ Constructor con parámetros
-    public Autor(int id, String nombre, String nacionalidad, int estado) {
+    public Autor(int id, String nombre, String biografia, int estado) {
         this.id = id;
         this.nombre = nombre;
-        this.nacionalidad = nacionalidad;
+        this.biografia = biografia;
         this.estado = estado;
     }
 
@@ -37,12 +37,12 @@ public class Autor {
         this.nombre = nombre;
     }
 
-    public String getNacionalidad() {
-        return nacionalidad;
+    public String getBiografia() {
+        return biografia;
     }
 
-    public void setNacionalidad(String nacionalidad) {
-        this.nacionalidad = nacionalidad;
+    public void setBiografia(String biografia) {
+        this.biografia = biografia;
     }
 
     public int getEstado() {
@@ -53,7 +53,7 @@ public class Autor {
         this.estado = estado;
     }
 
-    // 🧾 Método auxiliar opcional para mostrar estado en texto
+    // 🧾 Método auxiliar para mostrar estado en texto
     public String getEstadoDescripcion() {
         return (estado == 1) ? "Activo" : "Desactivado";
     }

@@ -16,12 +16,12 @@ public class AutorDAO {
             return false;
         }
 
-        String sql = "INSERT INTO Autores (nombre, nacionalidad, estado) VALUES (?, ?, 1)";
+        String sql = "INSERT INTO Autor (nombre, biografia, estado) VALUES (?, ?, 1)";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, autor.getNombre());
-            ps.setString(2, autor.getNacionalidad());
+            ps.setString(2, autor.getBiografia());
             int filas = ps.executeUpdate();
 
             if (filas > 0) {
@@ -42,12 +42,12 @@ public class AutorDAO {
             return false;
         }
 
-        String sql = "UPDATE Autores SET nombre = ?, nacionalidad = ? WHERE id = ?";
+        String sql = "UPDATE Autor SET nombre = ?, biografia = ? WHERE id = ?";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, autor.getNombre());
-            ps.setString(2, autor.getNacionalidad());
+            ps.setString(2, autor.getBiografia());
             ps.setInt(3, autor.getId());
 
             int filas = ps.executeUpdate();
@@ -70,7 +70,7 @@ public class AutorDAO {
             return false;
         }
 
-        String sql = "UPDATE Autores SET estado = 0 WHERE id = ?";
+        String sql = "UPDATE Autor SET estado = 0 WHERE id = ?";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -88,9 +88,9 @@ public class AutorDAO {
         return false;
     }
 
-    // 📝 REACTIVAR AUTOR (opcional — útil para administración)
+    // 📝 REACTIVAR AUTOR
     public boolean activarAutor(int id) {
-        String sql = "UPDATE Autores SET estado = 1 WHERE id = ?";
+        String sql = "UPDATE Autor SET estado = 1 WHERE id = ?";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -111,7 +111,7 @@ public class AutorDAO {
     // LISTAR SOLO ACTIVOS
     public List<Autor> listarAutoresActivos() {
         List<Autor> lista = new ArrayList<>();
-        String sql = "SELECT * FROM Autores WHERE estado = 1 ORDER BY nombre ASC";
+        String sql = "SELECT * FROM Autor WHERE estado = 1 ORDER BY nombre ASC";
 
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
@@ -121,7 +121,7 @@ public class AutorDAO {
                 Autor autor = new Autor();
                 autor.setId(rs.getInt("id"));
                 autor.setNombre(rs.getString("nombre"));
-                autor.setNacionalidad(rs.getString("nacionalidad"));
+                autor.setBiografia(rs.getString("biografia"));
                 autor.setEstado(rs.getInt("estado"));
                 lista.add(autor);
             }
@@ -133,10 +133,10 @@ public class AutorDAO {
         return lista;
     }
 
-    // LISTAR TODOS (opcional — para administración)
+    // LISTAR TODOS (para administración)
     public List<Autor> listarTodosLosAutores() {
         List<Autor> lista = new ArrayList<>();
-        String sql = "SELECT * FROM Autores ORDER BY nombre ASC";
+        String sql = "SELECT * FROM Autor ORDER BY nombre ASC";
 
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
@@ -146,7 +146,7 @@ public class AutorDAO {
                 Autor autor = new Autor();
                 autor.setId(rs.getInt("id"));
                 autor.setNombre(rs.getString("nombre"));
-                autor.setNacionalidad(rs.getString("nacionalidad"));
+                autor.setBiografia(rs.getString("biografia"));
                 autor.setEstado(rs.getInt("estado"));
                 lista.add(autor);
             }
