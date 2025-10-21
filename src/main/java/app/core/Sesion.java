@@ -13,4 +13,9 @@ public class Sesion {
     public static boolean hasRole(String rol) {
         return isLogged() && rol.equalsIgnoreCase(usuarioActual.getRol());
     }
+
+    // Método para cerrar sesión
+    public static void cerrarSesion() {
+        usuarioActual = null;
+    }
 }
