@@ -254,7 +254,7 @@ public class UsuariosForm {
                         u.getUsername(),
                         u.getNombre(),
                         "********", // Ocultamos la contraseña por seguridad
-                        "********", // Ocultamos la contraseña por seguridad
+                       // "********", // Ocultamos la contraseña por seguridad
                         u.getRol(),
                         u.getEstado() == 1 ? "Activo" : "Inactivo"
                 });
