@@ -1,4 +1,5 @@
 package app.dao;
+
 import app.core.PasswordUtil;
 import app.db.Conexion;
 import app.model.Usuario;
@@ -9,13 +10,14 @@ import java.util.List;
 
 public class UsuarioDAO {
 
-    /** Crea un usuario: guarda el HASH en la columna 'password' */
+    /** Crear usuario: guarda el HASH en la columna 'password' */
     public int crearUsuario(String username, String plainPassword, String nombre, String rol, int estado) throws SQLException {
         String sql = "INSERT INTO usuario (username, password, nombre, rol, estado) VALUES (?, ?, ?, ?, ?)";
         String hash = PasswordUtil.hash(plainPassword);
 
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             ps.setString(1, username);
             ps.setString(2, hash);
             ps.setString(3, nombre);
@@ -29,9 +31,8 @@ public class UsuarioDAO {
         }
     }
 
-    /** Actualiza un usuario. Devuelve true si la operación fue exitosa. */
+    /** Actualizar usuario (sin cambiar contraseña) */
     public boolean actualizar(Usuario u) throws SQLException {
-        // En la actualización, no se cambia la contraseña a menos que se requiera un método específico para ello.
         String sql = "UPDATE usuario SET username = ?, nombre = ?, rol = ?, estado = ? WHERE id = ?";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -46,7 +47,7 @@ public class UsuarioDAO {
         }
     }
 
-    /** Realiza una baja lógica de un usuario, cambiando su estado a 0 (inactivo). */
+    /** Eliminación lógica */
     public boolean eliminar(int id) throws SQLException {
         String sql = "UPDATE usuario SET estado = 0 WHERE id = ?";
         try (Connection con = Conexion.getConnection();
@@ -57,7 +58,7 @@ public class UsuarioDAO {
         }
     }
 
-    /** Lista todos los usuarios (activos e inactivos). */
+    /** Listar usuarios activos */
     public List<Usuario> listar() throws SQLException {
         String sql = "SELECT id, username, nombre, password, rol, estado FROM usuario WHERE estado=1 ORDER BY id DESC";
         List<Usuario> lista = new ArrayList<>();
@@ -72,10 +73,12 @@ public class UsuarioDAO {
         }
         return lista;
     }
-    /** Busca usuarios por un nombre de usuario. */
+
+    /** Buscar usuarios por username */
     public List<Usuario> buscarPorUsername(String username) throws SQLException {
         String sql = "SELECT id, username, nombre, password, rol, estado FROM usuario WHERE username LIKE ? AND estado=1";
         List<Usuario> lista = new ArrayList<>();
+
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -89,10 +92,10 @@ public class UsuarioDAO {
         return lista;
     }
 
-    /** Valida el login de un usuario. */
+    /** Validar login */
     public Usuario validarLogin(String username, String plainPassword) throws SQLException {
-        String sql = "SELECT id, username, password, nombre, rol, estado " +
-                "FROM usuario WHERE username=? AND estado=1";
+        String sql = "SELECT id, username, password, nombre, rol, estado FROM usuario WHERE username=? AND estado=1";
+
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -101,8 +104,7 @@ public class UsuarioDAO {
                 if (!rs.next()) return null;
 
                 String hash = rs.getString("password");
-                boolean ok = PasswordUtil.verify(plainPassword, hash);
-                if (!ok) return null;
+                if (!PasswordUtil.verify(plainPassword, hash)) return null;
 
                 return new Usuario(
                         rs.getInt("id"),
@@ -115,9 +117,7 @@ public class UsuarioDAO {
         }
     }
 
-    /**
-     * mapea un ResultSet a un objeto Usuario.
-     */
+    /** Mapear ResultSet a Usuario */
     private Usuario mapUsuario(ResultSet rs) throws SQLException {
         return new Usuario(
                 rs.getInt("id"),
