@@ -9,15 +9,27 @@ import java.util.List;
 
 public class EjemplarDAO {
 
-    // 🔹 INSERTAR: crea un nuevo ejemplar
+    // 🔹 INSERTAR nuevo ejemplar
     public int insertar(Ejemplar e) throws SQLException {
-        String sql = "INSERT INTO Ejemplar (codigo, idLibro, estado) VALUES (?, ?, ?)";
+        String sql = """
+            INSERT INTO Ejemplar 
+            (idLibro, codigoInventario, sala, estante, nivel, estadoCopia, fechaAlta, fechaBaja, estado)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """;
+
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, e.getCodigo());
-            ps.setInt(2, e.getIdLibro());
-            ps.setInt(3, e.getEstado());
+            ps.setInt(1, e.getIdLibro());
+            ps.setString(2, e.getCodigoInventario());
+            ps.setString(3, e.getSala());
+            ps.setString(4, e.getEstante());
+            ps.setString(5, e.getNivel());
+            ps.setString(6, e.getEstadoCopia());
+            ps.setDate(7, e.getFechaAlta());
+            ps.setDate(8, e.getFechaBaja());
+            ps.setString(9, e.getEstado());
+
             ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -31,46 +43,62 @@ public class EjemplarDAO {
         return -1;
     }
 
-    // 🔹 ACTUALIZAR: modifica datos del ejemplar
+    // 🔹 ACTUALIZAR datos del ejemplar
     public boolean actualizar(Ejemplar e) throws SQLException {
-        String sql = "UPDATE Ejemplar SET codigo=?, idLibro=?, estado=? WHERE id=?";
+        String sql = """
+            UPDATE Ejemplar 
+            SET idLibro=?, codigoInventario=?, sala=?, estante=?, nivel=?, 
+                estadoCopia=?, fechaAlta=?, fechaBaja=?, estado=? 
+            WHERE id=?
+        """;
+
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, e.getCodigo());
-            ps.setInt(2, e.getIdLibro());
-            ps.setInt(3, e.getEstado());
-            ps.setInt(4, e.getId());
+            ps.setInt(1, e.getIdLibro());
+            ps.setString(2, e.getCodigoInventario());
+            ps.setString(3, e.getSala());
+            ps.setString(4, e.getEstante());
+            ps.setString(5, e.getNivel());
+            ps.setString(6, e.getEstadoCopia());
+            ps.setDate(7, e.getFechaAlta());
+            ps.setDate(8, e.getFechaBaja());
+            ps.setString(9, e.getEstado());
+            ps.setInt(10, e.getId());
 
             return ps.executeUpdate() > 0;
         }
     }
 
-    // 🔹 ELIMINACIÓN LÓGICA: cambia estado de 1 a 0
+    // 🔹 ELIMINACIÓN LÓGICA (cambia estado a "Desactivado")
     public boolean eliminar(int id) throws SQLException {
-        String sql = "UPDATE Ejemplar SET estado = 0 WHERE id = ?";
+        String sql = "UPDATE Ejemplar SET estado = 'Desactivado' WHERE id = ?";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         }
     }
 
-    // 🔹 REACTIVAR: cambia estado de 0 a 1
+    // 🔹 REACTIVAR ejemplar (estado = "Activo")
     public boolean reactivar(int id) throws SQLException {
-        String sql = "UPDATE Ejemplar SET estado = 1 WHERE id = ?";
+        String sql = "UPDATE Ejemplar SET estado = 'Activo' WHERE id = ?";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         }
     }
 
-    // 🔹 LISTAR todos los ejemplares (últimos primero)
+    // 🔹 LISTAR todos los ejemplares
     public List<Ejemplar> listar() throws SQLException {
-        String sql = "SELECT id, codigo, idLibro, estado FROM Ejemplar ORDER BY id DESC";
+        String sql = """
+            SELECT id, idLibro, codigoInventario, sala, estante, nivel, 
+                   estadoCopia, fechaAlta, fechaBaja, estado
+            FROM Ejemplar
+            ORDER BY id DESC
+        """;
+
         List<Ejemplar> lista = new ArrayList<>();
 
         try (Connection con = Conexion.getConnection();
@@ -86,7 +114,7 @@ public class EjemplarDAO {
 
     // 🔹 BUSCAR POR ID
     public Ejemplar buscarPorId(int id) throws SQLException {
-        String sql = "SELECT id, codigo, idLibro, estado FROM Ejemplar WHERE id=?";
+        String sql = "SELECT * FROM Ejemplar WHERE id=?";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -100,15 +128,20 @@ public class EjemplarDAO {
         return null;
     }
 
-    // 🔹 BUSCAR POR CÓDIGO (búsqueda parcial)
-    public List<Ejemplar> buscarPorCodigo(String codigo) throws SQLException {
+    // 🔹 BUSCAR POR CÓDIGO DE INVENTARIO
+    public List<Ejemplar> buscarPorCodigoInventario(String codigoInventario) throws SQLException {
+        String sql = """
+            SELECT * FROM Ejemplar 
+            WHERE codigoInventario LIKE ? 
+            ORDER BY id DESC
+        """;
+
         List<Ejemplar> lista = new ArrayList<>();
-        String sql = "SELECT id, codigo, idLibro, estado FROM Ejemplar WHERE codigo LIKE ? ORDER BY id DESC";
 
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, "%" + codigo + "%");
+            ps.setString(1, "%" + codigoInventario + "%");
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     lista.add(mapEjemplar(rs));
@@ -118,27 +151,24 @@ public class EjemplarDAO {
         return lista;
     }
 
-    // 🔹 LISTAR CON JOIN a LIBRO (para mostrar nombre del libro)
+    // 🔹 LISTAR CON JOIN A LIBRO (nombre del libro)
     public List<Ejemplar> listarConLibro() throws SQLException {
         String sql = """
-                SELECT e.id, e.codigo, e.idLibro, l.nombre AS libroNombre, e.estado
-                FROM Ejemplar e
-                JOIN Libro l ON e.idLibro = l.id
-                ORDER BY e.id DESC
-                """;
+            SELECT e.id, e.idLibro, e.codigoInventario, e.sala, e.estante, e.nivel,
+                   e.estadoCopia, e.fechaAlta, e.fechaBaja, e.estado, l.titulo AS libroNombre
+            FROM Ejemplar e
+            JOIN Libro l ON e.idLibro = l.id
+            ORDER BY e.id DESC
+        """;
 
         List<Ejemplar> lista = new ArrayList<>();
+
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                Ejemplar ej = new Ejemplar(
-                        rs.getInt("id"),
-                        rs.getString("codigo"),
-                        rs.getInt("idLibro"),
-                        rs.getInt("estado")
-                );
+                Ejemplar ej = mapEjemplar(rs);
                 ej.setLibroNombre(rs.getString("libroNombre"));
                 lista.add(ej);
             }
@@ -146,13 +176,19 @@ public class EjemplarDAO {
         return lista;
     }
 
-    // 🔹 Helper: mapear ResultSet → objeto Ejemplar
+    // 🔹 Helper para mapear datos del ResultSet → Objeto Ejemplar
     private Ejemplar mapEjemplar(ResultSet rs) throws SQLException {
-        return new Ejemplar(
-                rs.getInt("id"),
-                rs.getString("codigo"),
-                rs.getInt("idLibro"),
-                rs.getInt("estado")
-        );
+        Ejemplar e = new Ejemplar();
+        e.setId(rs.getInt("id"));
+        e.setIdLibro(rs.getInt("idLibro"));
+        e.setCodigoInventario(rs.getString("codigoInventario"));
+        e.setSala(rs.getString("sala"));
+        e.setEstante(rs.getString("estante"));
+        e.setNivel(rs.getString("nivel"));
+        e.setEstadoCopia(rs.getString("estadoCopia"));
+        e.setFechaAlta(rs.getDate("fechaAlta"));
+        e.setFechaBaja(rs.getDate("fechaBaja"));
+        e.setEstado(rs.getString("estado"));
+        return e;
     }
 }
