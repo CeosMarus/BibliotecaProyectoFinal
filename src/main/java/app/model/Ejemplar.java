@@ -4,27 +4,29 @@ import java.sql.Date;
 
 public class Ejemplar {
 
+    // 🧾 Atributos
     private int id;
-    private int idLibro;
+    private int idLibro;           // FK → Libro.id
     private String codigoInventario;
     private String sala;
     private String estante;
     private String nivel;
-    private String estadoCopia; // Ejemplo: "Disponible", "Prestado", "Dañado", etc.
+    private String estadoCopia;
     private Date fechaAlta;
     private Date fechaBaja;
-    private String estado; // "Activo" o "Desactivado"
+    private int estado;            // 1 = Activo, 0 = Inactivo
 
-    // Campo auxiliar (para mostrar el nombre del libro al listar)
+    // 🔹 Atributo adicional para mostrar el nombre/titulo del libro en tablas
     private String libroNombre;
 
-    // 🏗️ Constructores
+    // 🏗️ Constructor vacío
     public Ejemplar() {
     }
 
-    // Constructor completo
-    public Ejemplar(int id, int idLibro, String codigoInventario, String sala, String estante, String nivel,
-                    String estadoCopia, Date fechaAlta, Date fechaBaja, String estado) {
+    // 🏗️ Constructor completo
+    public Ejemplar(int id, int idLibro, String codigoInventario, String sala,
+                    String estante, String nivel, String estadoCopia,
+                    Date fechaAlta, Date fechaBaja, int estado) {
         this.id = id;
         this.idLibro = idLibro;
         this.codigoInventario = codigoInventario;
@@ -34,19 +36,6 @@ public class Ejemplar {
         this.estadoCopia = estadoCopia;
         this.fechaAlta = fechaAlta;
         this.fechaBaja = fechaBaja;
-        this.estado = estado;
-    }
-
-    // Constructor parcial (para inserts sin fechaBaja)
-    public Ejemplar(int idLibro, String codigoInventario, String sala, String estante, String nivel,
-                    String estadoCopia, Date fechaAlta, String estado) {
-        this.idLibro = idLibro;
-        this.codigoInventario = codigoInventario;
-        this.sala = sala;
-        this.estante = estante;
-        this.nivel = nivel;
-        this.estadoCopia = estadoCopia;
-        this.fechaAlta = fechaAlta;
         this.estado = estado;
     }
 
@@ -123,11 +112,11 @@ public class Ejemplar {
         this.fechaBaja = fechaBaja;
     }
 
-    public String getEstado() {
+    public int getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(int estado) {
         this.estado = estado;
     }
 
@@ -139,16 +128,14 @@ public class Ejemplar {
         this.libroNombre = libroNombre;
     }
 
-    // 🔹 Estado textual
+    // 🔹 Método auxiliar para mostrar estado como texto
     public String getEstadoDescripcion() {
-        return estado != null ? estado : "Desconocido";
+        return (estado == 1) ? "Activo" : "Inactivo";
     }
 
-    // 🔹 toString (para ComboBox o debug)
+    // 🔹 toString útil para depuración o logs
     @Override
     public String toString() {
-        return codigoInventario + " - " +
-                (libroNombre != null ? libroNombre : "Sin título") +
-                " (" + getEstadoDescripcion() + ")";
+        return String.format("%s - %s (%s)", codigoInventario, libroNombre, getEstadoDescripcion());
     }
 }

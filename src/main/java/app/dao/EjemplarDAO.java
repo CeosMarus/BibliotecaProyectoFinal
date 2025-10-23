@@ -28,7 +28,7 @@ public class EjemplarDAO {
             ps.setString(6, e.getEstadoCopia());
             ps.setDate(7, e.getFechaAlta());
             ps.setDate(8, e.getFechaBaja());
-            ps.setString(9, e.getEstado());
+            ps.setInt(9, e.getEstado()); // <-- cambio a int
 
             ps.executeUpdate();
 
@@ -63,16 +63,16 @@ public class EjemplarDAO {
             ps.setString(6, e.getEstadoCopia());
             ps.setDate(7, e.getFechaAlta());
             ps.setDate(8, e.getFechaBaja());
-            ps.setString(9, e.getEstado());
+            ps.setInt(9, e.getEstado()); // <-- cambio a int
             ps.setInt(10, e.getId());
 
             return ps.executeUpdate() > 0;
         }
     }
 
-    // 🔹 ELIMINACIÓN LÓGICA (cambia estado a "Desactivado")
+    // 🔹 ELIMINACIÓN LÓGICA (cambia estado a 0)
     public boolean eliminar(int id) throws SQLException {
-        String sql = "UPDATE Ejemplar SET estado = 'Desactivado' WHERE id = ?";
+        String sql = "UPDATE Ejemplar SET estado = 0 WHERE id = ?";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -80,9 +80,9 @@ public class EjemplarDAO {
         }
     }
 
-    // 🔹 REACTIVAR ejemplar (estado = "Activo")
+    // 🔹 REACTIVAR ejemplar (estado = 1)
     public boolean reactivar(int id) throws SQLException {
-        String sql = "UPDATE Ejemplar SET estado = 'Activo' WHERE id = ?";
+        String sql = "UPDATE Ejemplar SET estado = 1 WHERE id = ?";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -151,11 +151,11 @@ public class EjemplarDAO {
         return lista;
     }
 
-    // 🔹 LISTAR CON JOIN A LIBRO (nombre del libro)
+    // 🔹 LISTAR CON JOIN A LIBRO (titulo del libro)
     public List<Ejemplar> listarConLibro() throws SQLException {
         String sql = """
             SELECT e.id, e.idLibro, e.codigoInventario, e.sala, e.estante, e.nivel,
-                   e.estadoCopia, e.fechaAlta, e.fechaBaja, e.estado, l.titulo AS libroNombre
+                   e.estadoCopia, e.fechaAlta, e.fechaBaja, e.estado, l.titulo AS libroTitulo
             FROM Ejemplar e
             JOIN Libro l ON e.idLibro = l.id
             ORDER BY e.id DESC
@@ -169,7 +169,7 @@ public class EjemplarDAO {
 
             while (rs.next()) {
                 Ejemplar ej = mapEjemplar(rs);
-                ej.setLibroNombre(rs.getString("libroNombre"));
+                ej.setLibroNombre(rs.getString("libroTitulo")); // usamos titulo
                 lista.add(ej);
             }
         }
@@ -188,7 +188,7 @@ public class EjemplarDAO {
         e.setEstadoCopia(rs.getString("estadoCopia"));
         e.setFechaAlta(rs.getDate("fechaAlta"));
         e.setFechaBaja(rs.getDate("fechaBaja"));
-        e.setEstado(rs.getString("estado"));
+        e.setEstado(rs.getInt("estado")); // <-- cambio a int
         return e;
     }
 }

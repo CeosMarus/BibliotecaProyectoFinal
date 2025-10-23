@@ -9,6 +9,7 @@ import app.model.LibroConAutor;
 import app.model.Autor;
 
 import javax.swing.*;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -20,6 +21,7 @@ public class LibroForm extends JFrame {
     public JPanel panelPrincipal;
     private JTextField txtNombre;
     private JTextField txtAnio;
+    private JTextField txtIsbn; // <-- agregado
     private JComboBox<Autor> cboAutor;
     private JComboBox<Categoria> cboCategoria;
     private JComboBox<String> cboEstado;
@@ -37,7 +39,7 @@ public class LibroForm extends JFrame {
     private final CategoriaDAO categoriaDAO = new CategoriaDAO();
 
     private final DefaultTableModel model = new DefaultTableModel(
-            new Object[]{"ID", "Nombre", "Año", "Autor", "Categoría", "Estado"}, 0
+            new Object[]{"ID", "Nombre", "Año", "ISBN", "Autor", "Categoría", "Estado"}, 0
     );
 
     private Integer selectedId = null;
@@ -76,15 +78,16 @@ public class LibroForm extends JFrame {
                 String texto = txtBuscar.getText().trim();
                 try {
                     List<LibroConAutor> lista = texto.isEmpty() ? libroDAO.listarTodos() : libroDAO.listarTodos().stream()
-                            .filter(l -> l.getNombre().toLowerCase().contains(texto.toLowerCase()))
+                            .filter(l -> l.getTitulo().toLowerCase().contains(texto.toLowerCase()))
                             .toList();
 
                     model.setRowCount(0);
                     for (LibroConAutor l : lista) {
                         model.addRow(new Object[]{
                                 l.getId(),
-                                l.getNombre(),
+                                l.getTitulo(),
                                 l.getAnio(),
+                                l.getIsbn(),
                                 l.getAutorNombre(),
                                 l.getCategoriaNombre(),
                                 l.getEstado() == 1 ? "Activo" : "Inactivo"
@@ -121,8 +124,9 @@ public class LibroForm extends JFrame {
         selectedId = (Integer) model.getValueAt(row, 0);
         txtNombre.setText((String) model.getValueAt(row, 1));
         txtAnio.setText(String.valueOf(model.getValueAt(row, 2)));
+        txtIsbn.setText((String) model.getValueAt(row, 3)); // <-- asignar isbn
 
-        String autorNombre = (String) model.getValueAt(row, 3);
+        String autorNombre = (String) model.getValueAt(row, 4);
         for (int i = 0; i < cboAutor.getItemCount(); i++) {
             if (cboAutor.getItemAt(i).getNombre().equals(autorNombre)) {
                 cboAutor.setSelectedIndex(i);
@@ -130,7 +134,7 @@ public class LibroForm extends JFrame {
             }
         }
 
-        String categoriaNombre = (String) model.getValueAt(row, 4);
+        String categoriaNombre = (String) model.getValueAt(row, 5);
         for (int i = 0; i < cboCategoria.getItemCount(); i++) {
             if (cboCategoria.getItemAt(i).getNombre().equals(categoriaNombre)) {
                 cboCategoria.setSelectedIndex(i);
@@ -138,13 +142,14 @@ public class LibroForm extends JFrame {
             }
         }
 
-        cboEstado.setSelectedIndex(model.getValueAt(row, 5).equals("Activo") ? 0 : 1);
+        cboEstado.setSelectedIndex(model.getValueAt(row, 6).equals("Activo") ? 0 : 1);
     }
 
     private void onGuardar() {
         String nombre = txtNombre.getText().trim();
         String anioStr = txtAnio.getText().trim();
-        if (nombre.isEmpty() || anioStr.isEmpty() || cboAutor.getSelectedItem() == null || cboCategoria.getSelectedItem() == null) {
+        String isbn = txtIsbn.getText().trim();
+        if (nombre.isEmpty() || anioStr.isEmpty() || isbn.isEmpty() || cboAutor.getSelectedItem() == null || cboCategoria.getSelectedItem() == null) {
             JOptionPane.showMessageDialog(panelPrincipal, "Completa todos los campos", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -163,7 +168,8 @@ public class LibroForm extends JFrame {
                 anio,
                 ((Autor) cboAutor.getSelectedItem()).getId(),
                 ((Categoria) cboCategoria.getSelectedItem()).getId(),
-                estado
+                estado,
+                isbn
         );
 
         if (libroDAO.agregarLibro(libro)) {
@@ -177,7 +183,8 @@ public class LibroForm extends JFrame {
 
         String nombre = txtNombre.getText().trim();
         String anioStr = txtAnio.getText().trim();
-        if (nombre.isEmpty() || anioStr.isEmpty() || cboAutor.getSelectedItem() == null || cboCategoria.getSelectedItem() == null) {
+        String isbn = txtIsbn.getText().trim();
+        if (nombre.isEmpty() || anioStr.isEmpty() || isbn.isEmpty() || cboAutor.getSelectedItem() == null || cboCategoria.getSelectedItem() == null) {
             JOptionPane.showMessageDialog(panelPrincipal, "Completa todos los campos", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -191,7 +198,15 @@ public class LibroForm extends JFrame {
         }
 
         int estado = cboEstado.getSelectedIndex() == 0 ? 1 : 0;
-        Libro libro = new Libro(selectedId, nombre, anio, ((Autor) cboAutor.getSelectedItem()).getId(), ((Categoria) cboCategoria.getSelectedItem()).getId(), estado);
+        Libro libro = new Libro(
+                selectedId,
+                nombre,
+                anio,
+                ((Autor) cboAutor.getSelectedItem()).getId(),
+                ((Categoria) cboCategoria.getSelectedItem()).getId(),
+                estado,
+                isbn
+        );
 
         if (libroDAO.actualizarLibro(libro)) {
             cargarTabla();
@@ -209,6 +224,7 @@ public class LibroForm extends JFrame {
     private void limpiarFormulario() {
         txtNombre.setText("");
         txtAnio.setText("");
+        txtIsbn.setText(""); // <-- limpiar isbn
         cboAutor.setSelectedIndex(-1);
         cboCategoria.setSelectedIndex(-1);
         cboEstado.setSelectedIndex(0);
@@ -222,8 +238,9 @@ public class LibroForm extends JFrame {
         for (LibroConAutor l : lista) {
             model.addRow(new Object[]{
                     l.getId(),
-                    l.getNombre(),
+                    l.getTitulo(),
                     l.getAnio(),
+                    l.getIsbn(),
                     l.getAutorNombre(),
                     l.getCategoriaNombre(),
                     l.getEstado() == 1 ? "Activo" : "Inactivo"
@@ -231,12 +248,10 @@ public class LibroForm extends JFrame {
         }
     }
 
-    public class MainLibroConAutor {
-        public static void main(String[]args){
-            SwingUtilities.invokeLater(()->{
-                LibroForm form = new LibroForm();
-                form.setVisible(true);
-            });
-        }
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            LibroForm form = new LibroForm();
+            form.setVisible(true);
+        });
     }
 }

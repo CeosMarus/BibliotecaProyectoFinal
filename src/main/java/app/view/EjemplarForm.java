@@ -6,243 +6,340 @@ import app.model.Ejemplar;
 import app.model.LibroConAutor;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.sql.Date;
-import java.time.LocalDate;
 import java.util.List;
 
 public class EjemplarForm extends JFrame {
-
-    private JPanel panelPrincipal;
-    private JTextField txtCodigo;
-    private JComboBox<LibroConAutor> cboLibro;
+    private JPanel mainPanel;
+    private JTable tablaEjemplares;
+    private JComboBox<String> comboLibro;
+    private JTextField txtCodigoInventario;
+    private JTextField txtSala;
+    private JTextField txtEstante;
+    private JTextField txtNivel;
+    private JTextField txtEstadoCopia;
+    private JTextField txtFechaAlta;
+    private JTextField txtFechaBaja;
     private JButton btnGuardar;
     private JButton btnActualizar;
     private JButton btnEliminar;
     private JButton btnLimpiar;
-    private JButton btnCargar;
     private JButton btnSalir;
-    private JTable tblEjemplares;
-    private JTextField txtBuscar;
 
-    private final EjemplarDAO ejemplarDAO = new EjemplarDAO();
-    private final LibroDAO libroDAO = new LibroDAO();
-    private final DefaultTableModel model = new DefaultTableModel(
-            new Object[]{"ID", "Código", "Libro", "Estado"}, 0
-    );
-    private Integer selectedId = null;
+
+    private int idSeleccionado = -1;
 
     public EjemplarForm() {
         setTitle("Gestión de Ejemplares");
-        setSize(900, 600);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setContentPane(mainPanel);
+        setSize(950, 600);
         setLocationRelativeTo(null);
-        setContentPane(panelPrincipal);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        tblEjemplares.setModel(model);
-        tblEjemplares.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        inicializarFormulario();
 
-        cargarLibros();
+        btnGuardar.addActionListener(this::guardarEjemplar);
+        btnActualizar.addActionListener(this::actualizarEjemplar);
+        btnEliminar.addActionListener(this::eliminarEjemplar);
+        btnLimpiar.addActionListener(e -> limpiarCampos());
+        btnSalir.addActionListener(e -> salirFormulario());
 
-        btnGuardar.addActionListener(e -> onGuardar());
-        btnActualizar.addActionListener(e -> onActualizar());
-        btnEliminar.addActionListener(e -> onEliminar());
-        btnLimpiar.addActionListener(e -> limpiarFormulario());
-        btnCargar.addActionListener(e -> cargarTabla());
 
-        tblEjemplares.getSelectionModel().addListSelectionListener(this::onTableSelection);
 
-        // 🔍 Búsqueda en tiempo real
-        txtBuscar.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { buscar(); }
-            public void removeUpdate(DocumentEvent e) { buscar(); }
-            public void changedUpdate(DocumentEvent e) { buscar(); }
 
-            private void buscar() {
-                String texto = txtBuscar.getText().trim();
-                try {
-                    List<Ejemplar> lista = texto.isEmpty()
-                            ? ejemplarDAO.listarConLibro()
-                            : ejemplarDAO.buscarPorCodigoInventario(texto);
-
-                    model.setRowCount(0);
-                    for (Ejemplar ej : lista) {
-                        model.addRow(new Object[]{
-                                ej.getId(),
-                                ej.getCodigoInventario(),
-                                ej.getLibroNombre(),
-                                ej.getEstadoDescripcion()
-                        });
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
+        tablaEjemplares.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) cargarSeleccionTabla();
         });
+    }
 
-        cargarTabla();
+
+    // ============================================================
+    // INICIALIZACIÓN
+    // ============================================================
+
+    private void inicializarFormulario() {
+        configurarTabla();
+        cargarLibros();
+        cargarEjemplares();
+    }
+
+    private void configurarTabla() {
+        tablaEjemplares.setModel(new DefaultTableModel(
+                new Object[][]{},
+                new String[]{"ID", "Código Inventario", "Libro", "Sala", "Estante",
+                        "Nivel", "Estado Copia", "Fecha Alta", "Fecha Baja", "Estado"}
+        ));
     }
 
     private void cargarLibros() {
-        cboLibro.removeAllItems();
-        try {
-            List<LibroConAutor> lista = libroDAO.listarTodos();
-            for (LibroConAutor l : lista) {
-                cboLibro.addItem(l);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+        comboLibro.removeAllItems();
+        LibroDAO libroDAO = new LibroDAO();
+        List<LibroConAutor> libros = libroDAO.listarTodos();
 
-    private void onTableSelection(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) return;
-        int row = tblEjemplares.getSelectedRow();
-        if (row == -1) {
-            selectedId = null;
-            return;
-        }
-
-        selectedId = (Integer) model.getValueAt(row, 0);
-        txtCodigo.setText((String) model.getValueAt(row, 1));
-
-        String libroNombre = (String) model.getValueAt(row, 2);
-        for (int i = 0; i < cboLibro.getItemCount(); i++) {
-            if (cboLibro.getItemAt(i).getNombre().equals(libroNombre)) {
-                cboLibro.setSelectedIndex(i);
-                break;
+        if (libros.isEmpty()) {
+            comboLibro.addItem("⚠️ No hay libros activos");
+            comboLibro.setEnabled(false);
+        } else {
+            comboLibro.setEnabled(true);
+            for (LibroConAutor l : libros) {
+                comboLibro.addItem(l.getId() + " - " + l.getTitulo());
             }
         }
     }
 
-    private void onGuardar() {
-        String codigo = txtCodigo.getText().trim();
-        LibroConAutor libro = (LibroConAutor) cboLibro.getSelectedItem();
+    private void cargarEjemplares() {
+        DefaultTableModel modelo = (DefaultTableModel) tablaEjemplares.getModel();
+        modelo.setRowCount(0);
 
-        if (codigo.isEmpty()) {
-            JOptionPane.showMessageDialog(panelPrincipal, "El campo Código es obligatorio",
-                    "Validación", JOptionPane.WARNING_MESSAGE);
-            txtCodigo.requestFocus();
-            return;
-        }
-        if (libro == null) {
-            JOptionPane.showMessageDialog(panelPrincipal, "Debe seleccionar un Libro",
-                    "Validación", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        try {
-            Ejemplar e = new Ejemplar();
-            e.setCodigoInventario(codigo);
-            e.setIdLibro(libro.getId());
-            e.setSala("Principal");
-            e.setEstante("A1");
-            e.setNivel("1");
-            e.setEstadoCopia("Disponible");
-            e.setFechaAlta(Date.valueOf(LocalDate.now()));
-            e.setEstado("Activo");
-
-            int id = ejemplarDAO.insertar(e);
-            if (id > 0) {
-                JOptionPane.showMessageDialog(panelPrincipal, "Ejemplar agregado correctamente",
-                        "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                limpiarFormulario();
-                cargarTabla();
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void onActualizar() {
-        if (selectedId == null) return;
-
-        String codigo = txtCodigo.getText().trim();
-        LibroConAutor libro = (LibroConAutor) cboLibro.getSelectedItem();
-
-        if (codigo.isEmpty()) {
-            JOptionPane.showMessageDialog(panelPrincipal, "El campo Código es obligatorio",
-                    "Validación", JOptionPane.WARNING_MESSAGE);
-            txtCodigo.requestFocus();
-            return;
-        }
-
-        try {
-            Ejemplar e = new Ejemplar();
-            e.setId(selectedId);
-            e.setIdLibro(libro.getId());
-            e.setCodigoInventario(codigo);
-            e.setSala("Principal");
-            e.setEstante("A1");
-            e.setNivel("1");
-            e.setEstadoCopia("Disponible");
-            e.setFechaAlta(Date.valueOf(LocalDate.now()));
-            e.setEstado("Activo");
-
-            if (ejemplarDAO.actualizar(e)) {
-                JOptionPane.showMessageDialog(panelPrincipal, "Ejemplar actualizado correctamente",
-                        "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                cargarTabla();
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void onEliminar() {
-        if (selectedId == null) return;
-
-        int r = JOptionPane.showConfirmDialog(panelPrincipal,
-                "¿Desea desactivar este ejemplar?",
-                "Confirmar eliminación",
-                JOptionPane.YES_NO_OPTION);
-        if (r != JOptionPane.YES_OPTION) return;
-
-        try {
-            if (ejemplarDAO.eliminar(selectedId)) {
-                JOptionPane.showMessageDialog(panelPrincipal, "Ejemplar desactivado correctamente",
-                        "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                limpiarFormulario();
-                cargarTabla();
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void limpiarFormulario() {
-        txtCodigo.setText("");
-        cboLibro.setSelectedIndex(-1);
-        tblEjemplares.clearSelection();
-        selectedId = null;
-    }
-
-    private void cargarTabla() {
+        EjemplarDAO ejemplarDAO = new EjemplarDAO();
         try {
             List<Ejemplar> lista = ejemplarDAO.listarConLibro();
-            model.setRowCount(0);
             for (Ejemplar e : lista) {
-                model.addRow(new Object[]{
+                modelo.addRow(new Object[]{
                         e.getId(),
                         e.getCodigoInventario(),
                         e.getLibroNombre(),
+                        e.getSala(),
+                        e.getEstante(),
+                        e.getNivel(),
+                        e.getEstadoCopia(),
+                        e.getFechaAlta() != null ? e.getFechaAlta().toString() : "",
+                        e.getFechaBaja() != null ? e.getFechaBaja().toString() : "",
                         e.getEstadoDescripcion()
                 });
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al cargar ejemplares: " + ex.getMessage());
         }
     }
 
-    public JPanel getPanel() {
-        return panelPrincipal;
+    private void salirFormulario() {
+        int confirmar = JOptionPane.showConfirmDialog(
+                this,
+                "¿Deseas cerrar el formulario?",
+                "Confirmar salida",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirmar == JOptionPane.YES_OPTION) {
+            this.dispose(); // Cierra solo este JFrame
+        }
     }
 
+
+    // ============================================================
+    // CRUD
+    // ============================================================
+
+    private void guardarEjemplar(ActionEvent evt) {
+        try {
+            if (!validarCampos()) return;
+
+            int idLibro = Integer.parseInt(comboLibro.getSelectedItem().toString().split(" - ")[0]);
+            Date fechaAlta = Date.valueOf(txtFechaAlta.getText().trim());
+            Date fechaBaja = txtFechaBaja.getText().isEmpty() ? null : Date.valueOf(txtFechaBaja.getText().trim());
+
+            Ejemplar e = new Ejemplar();
+            e.setIdLibro(idLibro);
+            e.setCodigoInventario(txtCodigoInventario.getText().trim());
+            e.setSala(txtSala.getText().trim());
+            e.setEstante(txtEstante.getText().trim());
+            e.setNivel(txtNivel.getText().trim());
+            e.setEstadoCopia(txtEstadoCopia.getText().trim());
+            e.setFechaAlta(fechaAlta);
+            e.setFechaBaja(fechaBaja);
+            e.setEstado(1);
+
+            EjemplarDAO dao = new EjemplarDAO();
+            dao.insertar(e);
+
+            JOptionPane.showMessageDialog(this, "Ejemplar guardado correctamente.");
+            limpiarCampos();
+            cargarEjemplares();
+
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Error en el formato de fecha. Usa AAAA-MM-DD.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al guardar: " + e.getMessage());
+        }
+    }
+
+    private void actualizarEjemplar(ActionEvent evt) {
+        if (idSeleccionado == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un ejemplar primero.");
+            return;
+        }
+
+        try {
+            if (!validarCampos()) return;
+
+            int idLibro = Integer.parseInt(comboLibro.getSelectedItem().toString().split(" - ")[0]);
+            Date fechaAlta = Date.valueOf(txtFechaAlta.getText().trim());
+            Date fechaBaja = txtFechaBaja.getText().isEmpty() ? null : Date.valueOf(txtFechaBaja.getText().trim());
+
+            Ejemplar e = new Ejemplar();
+            e.setId(idSeleccionado);
+            e.setIdLibro(idLibro);
+            e.setCodigoInventario(txtCodigoInventario.getText().trim());
+            e.setSala(txtSala.getText().trim());
+            e.setEstante(txtEstante.getText().trim());
+            e.setNivel(txtNivel.getText().trim());
+            e.setEstadoCopia(txtEstadoCopia.getText().trim());
+            e.setFechaAlta(fechaAlta);
+            e.setFechaBaja(fechaBaja);
+            e.setEstado(1);
+
+            EjemplarDAO dao = new EjemplarDAO();
+            dao.actualizar(e);
+
+            JOptionPane.showMessageDialog(this, "Ejemplar actualizado correctamente.");
+            limpiarCampos();
+            cargarEjemplares();
+
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Formato de fecha incorrecto. Usa AAAA-MM-DD.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al actualizar: " + e.getMessage());
+        }
+    }
+
+    private void eliminarEjemplar(ActionEvent evt) {
+        if (idSeleccionado == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un ejemplar para eliminar.");
+            return;
+        }
+
+        int confirmar = JOptionPane.showConfirmDialog(this,
+                "¿Deseas desactivar este ejemplar?", "Confirmar", JOptionPane.YES_NO_OPTION);
+
+        if (confirmar == JOptionPane.YES_OPTION) {
+            try {
+                EjemplarDAO dao = new EjemplarDAO();
+                dao.eliminar(idSeleccionado);
+                JOptionPane.showMessageDialog(this, "Ejemplar desactivado correctamente.");
+                limpiarCampos();
+                cargarEjemplares();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
+    }
+
+
+    // ============================================================
+    // AUXILIARES
+    // ============================================================
+
+    private boolean validarCampos() {
+        // Campos obligatorios
+        if (txtCodigoInventario.getText().trim().isEmpty() ||
+                txtSala.getText().trim().isEmpty() ||
+                txtEstante.getText().trim().isEmpty() ||
+                txtNivel.getText().trim().isEmpty() ||
+                txtEstadoCopia.getText().trim().isEmpty() ||
+                txtFechaAlta.getText().trim().isEmpty()) {
+
+            JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios excepto Fecha Baja.");
+            return false;
+        }
+
+        /*
+        // Validación numérica: Nivel
+        try {
+            Integer.parseInt(txtNivel.getText().trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "El campo Nivel solo acepta valores numéricos.");
+            txtNivel.requestFocus();
+            return false;
+        }
+
+
+        // Validación numérica: Código de Inventario (si aplica)
+        try {
+            Integer.parseInt(txtCodigoInventario.getText().trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "El campo Código de Inventario solo acepta valores numéricos.");
+            txtCodigoInventario.requestFocus();
+            return false;
+        }
+        */
+        // Validación numérica: Nivel
+        try {
+            Integer.parseInt(txtEstante.getText().trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "El campo Estante solo acepta valores numéricos.");
+            txtEstante.requestFocus();
+            return false;
+        }
+
+        // Validación de fecha
+        try {
+            Date.valueOf(txtFechaAlta.getText().trim());
+            if (!txtFechaBaja.getText().isEmpty()) {
+                Date.valueOf(txtFechaBaja.getText().trim());
+            }
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, "Formato de fecha incorrecto. Usa AAAA-MM-DD.");
+            return false;
+        }
+
+        return true;
+    }
+
+
+    private void limpiarCampos() {
+        idSeleccionado = -1;
+        txtCodigoInventario.setText("");
+        txtSala.setText("");
+        txtEstante.setText("");
+        txtNivel.setText("");
+        txtEstadoCopia.setText("");
+        txtFechaAlta.setText("");
+        txtFechaBaja.setText("");
+        if (comboLibro.getItemCount() > 0) comboLibro.setSelectedIndex(0);
+        tablaEjemplares.clearSelection();
+    }
+
+    private void cargarSeleccionTabla() {
+        int fila = tablaEjemplares.getSelectedRow();
+        if (fila != -1) {
+            idSeleccionado = (int) tablaEjemplares.getValueAt(fila, 0);
+            txtCodigoInventario.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 1)));
+
+            // Seleccionar el libro correcto por ID en el combo
+            String libroNombreTabla = String.valueOf(tablaEjemplares.getValueAt(fila, 2));
+            for (int i = 0; i < comboLibro.getItemCount(); i++) {
+                String item = comboLibro.getItemAt(i);
+                // Cada item tiene formato "id - nombre"
+                if (item.endsWith(" - " + libroNombreTabla)) {
+                    comboLibro.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            txtSala.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 3)));
+            txtEstante.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 4)));
+            txtNivel.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 5)));
+            txtEstadoCopia.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 6)));
+            txtFechaAlta.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 7)));
+            txtFechaBaja.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 8)));
+        }
+    }
+
+
+    // ============================================================
+    // MAIN
+    // ============================================================
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new EjemplarForm().setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception ignored) {}
+            EjemplarForm form = new EjemplarForm();
+            form.setVisible(true);
+        });
     }
 }

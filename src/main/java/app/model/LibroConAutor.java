@@ -2,60 +2,39 @@ package app.model;
 
 public class LibroConAutor {
 
-    // 🧾 Atributos combinados de libro, autor y categoría
     private final int id;
-    private final String nombre;
+    private final String titulo;         // columna "titulo"
     private final int anio;
     private final String autorNombre;
     private final String categoriaNombre;
     private final int estado;
+    private final String isbn;
 
-    // 🏗️ Constructor completo
-    public LibroConAutor(int id, String nombre, int anio, String autorNombre, String categoriaNombre, int estado) {
+    // Constructor completo
+    public LibroConAutor(int id, String titulo, int anio, String autorNombre, String categoriaNombre, int estado, String isbn) {
         this.id = id;
-        this.nombre = nombre;
+        this.titulo = titulo;
         this.anio = anio;
         this.autorNombre = autorNombre;
         this.categoriaNombre = categoriaNombre;
         this.estado = estado;
+        this.isbn = isbn;
     }
 
-    // 🧭 Getters
-    public int getId() {
-        return id;
-    }
+    // Getters
+    public int getId() { return id; }
+    public String getTitulo() { return titulo; }
+    public int getAnio() { return anio; }
+    public String getAutorNombre() { return autorNombre; }
+    public String getCategoriaNombre() { return categoriaNombre; }
+    public int getEstado() { return estado; }
+    public String getIsbn() { return isbn; }
 
-    public String getNombre() {
-        return nombre;
-    }
+    public String getEstadoDescripcion() { return (estado == 1) ? "Activo" : "Inactivo"; }
 
-    public int getAnio() {
-        return anio;
-    }
-
-    public String getAutorNombre() {
-        return autorNombre;
-    }
-
-    public String getCategoriaNombre() {
-        return categoriaNombre;
-    }
-
-    public int getEstado() {
-        return estado;
-    }
-
-    // 🧾 Método auxiliar para mostrar estado como texto
-    public String getEstadoDescripcion() {
-        return (estado == 1) ? "Activo" : "Desactivado";
-    }
-
-    // 🧩 toString para visualización en tablas o logs
     @Override
     public String toString() {
-        return String.format(
-                "%s (%d) | Autor: %s | Categoría: %s | Estado: %s",
-                nombre, anio, autorNombre, categoriaNombre, getEstadoDescripcion()
-        );
+        return String.format("%s (%d) | Autor: %s | Categoría: %s | Estado: %s | ISBN: %s",
+                titulo, anio, autorNombre, categoriaNombre, getEstadoDescripcion(), isbn);
     }
 }
