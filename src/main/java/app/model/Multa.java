@@ -5,22 +5,21 @@ import java.util.Date;
 
 public class Multa {
 
-    // 🧾 Atributos
+    // Atributos
     private Integer id;           // null al insertar (autogenerado)
-    private int idPrestamo;       // FK → Prestamo.id
-    private int idCliente;        // FK → Cliente.id
+    private int idPrestamo;
+    private int idCliente;
     private BigDecimal monto;
     private int diasAtraso;
-    private int estadoPago;       // 0 = Pendiente, 1 = Pagado
+    private int estadoPago;
     private Date fechaPago;
     private String observaciones;
-    private int estado;           // 1 = Activo, 0 = Desactivado
-
-    // 🏗️ Constructor vacío
+    private int estado;
+    //  Constructor vacío
     public Multa() {
     }
 
-    // 🏗️ Constructor completo (con id)
+    //Constructor completo (con id)
     public Multa(Integer id, int idPrestamo, int idCliente, BigDecimal monto, int diasAtraso,
                  int estadoPago, Date fechaPago, String observaciones, int estado) {
         this.id = id;
@@ -34,13 +33,13 @@ public class Multa {
         this.estado = estado;
     }
 
-    // 🏗️ Constructor sin id (para inserciones nuevas)
+    // Constructor sin id (para inserciones nuevas)
     public Multa(int idPrestamo, int idCliente, BigDecimal monto, int diasAtraso,
                  int estadoPago, Date fechaPago, String observaciones, int estado) {
-        this(null, idPrestamo, idCliente, monto, diasAtraso, estadoPago, fechaPago, observaciones, estado);
+        this(null, idPrestamo, idCliente,monto, diasAtraso, estadoPago, fechaPago, observaciones, estado);
     }
 
-    // 🧭 Getters y Setters
+    //Getters y Setters
     public Integer getId() {
         return id;
     }
@@ -113,17 +112,17 @@ public class Multa {
         this.estado = estado;
     }
 
-    // 🧾 Método auxiliar para mostrar estado como texto
+    //Método auxiliar para mostrar estado como texto
     public String getEstadoDescripcion() {
         return (estado == 1) ? "Activo" : "Desactivado";
     }
 
-    // 🧾 Método auxiliar para mostrar estado de pago como texto
+    // Método auxiliar para mostrar estado de pago como texto
     public String getEstadoPagoDescripcion() {
         return (estadoPago == 1) ? "Pagado" : "Pendiente";
     }
 
-    // 🧩 Representación útil (para depuración o vistas)
+    //Representación útil (para depuración o vistas)
     @Override
     public String toString() {
         return "Multa{" +

@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal; // Importación necesaria para el saldo
 
 public class AperturaCajaDAO {
 
@@ -14,7 +15,7 @@ public class AperturaCajaDAO {
     public int abrirCaja(AperturaCaja caja) throws SQLException {
         if (caja == null) throw new SQLException("Apertura de caja no puede ser nula.");
         if (caja.getIdUsuario() <= 0) throw new SQLException("Usuario inválido.");
-        if (caja.getSaldoInicial().compareTo(java.math.BigDecimal.ZERO) < 0)
+        if (caja.getSaldoInicial().compareTo(BigDecimal.ZERO) < 0)
             throw new SQLException("Saldo inicial no puede ser negativo.");
 
         String sql = "INSERT INTO AperturaCaja (idUsuario, fecha, hora, saldoincial, estado) VALUES (?, ?, ?, ?, 1)";
@@ -42,6 +43,7 @@ public class AperturaCajaDAO {
 
     // 🔒 CERRAR CAJA (Actualización de estado)
     public boolean cerrarCaja(int id) throws SQLException {
+        // Tu método ya estaba correcto
         String sql = "UPDATE AperturaCaja SET estado = 0 WHERE id = ?";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -124,6 +126,26 @@ public class AperturaCajaDAO {
         return lista;
     }
 
+    /**
+     * Obtiene la única caja activa actualmente.
+     * @return El objeto AperturaCaja activa o null.
+     */
+    public AperturaCaja obtenerActiva() throws SQLException {
+        // La columna en SQL es saldoincial (minúscula)
+        String sql = "SELECT id, idUsuario, fecha, hora, saldoincial, estado FROM AperturaCaja WHERE estado = 1";
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                // Se usa el método de mapeo, que ya es correcto
+                return mapAperturaCaja(rs);
+            }
+        }
+        return null; // Retorna null si no hay caja activa
+    }
+
     // 🧭 MAPEO DE RESULTSET A OBJETO AperturaCaja
     private AperturaCaja mapAperturaCaja(ResultSet rs) throws SQLException {
         AperturaCaja caja = new AperturaCaja();
@@ -131,6 +153,7 @@ public class AperturaCajaDAO {
         caja.setIdUsuario(rs.getInt("idUsuario"));
         caja.setFecha(rs.getDate("fecha"));
         caja.setHora(rs.getTimestamp("hora"));
+        // El nombre de la columna en la BD es saldoincial
         caja.setSaldoInicial(rs.getBigDecimal("saldoincial"));
         caja.setEstado(rs.getInt("estado"));
         return caja;

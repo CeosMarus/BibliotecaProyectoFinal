@@ -23,6 +23,7 @@ public class AperturaCajaView extends JPanel {
     private JLabel lblUsuarioActual;
     private JTextField txtSaldoInicial;
     private JButton btnAbrirCaja;
+    private JButton btnSalir; // 🔹 Nuevo botón Salir
 
     // DAOs y Modelos
     private final AperturaCajaDAO cajaDAO;
@@ -36,7 +37,7 @@ public class AperturaCajaView extends JPanel {
 
         // 1. Verificar la sesión antes de construir la vista
         if (!Sesion.isLogged()) {
-            JOptionPane.showMessageDialog(this, // Usamos 'this' (el panel) como padre
+            JOptionPane.showMessageDialog(this,
                     "Debe iniciar sesión para realizar la apertura de caja.",
                     "Acceso Denegado", JOptionPane.WARNING_MESSAGE);
             usuarioLogueado = null;
@@ -47,11 +48,12 @@ public class AperturaCajaView extends JPanel {
         setPreferredSize(new Dimension(500, 250));
         setLayout(new BorderLayout(10, 5));
 
-        // 3. Inicialización de componentes y lógica
+        // 2. Inicialización de componentes y lógica
         initComponents();
-        btnAbrirCaja.addActionListener(e -> abrirCaja());
 
-        // **SE ELIMINA:** setVisible(true)
+        // 3. Asignar eventos
+        btnAbrirCaja.addActionListener(e -> abrirCaja());
+        btnSalir.addActionListener(e -> salir());
     }
 
     // --------------------------------------------------------------------------
@@ -61,7 +63,7 @@ public class AperturaCajaView extends JPanel {
         // --- Panel Superior (Título) ---
         JLabel lblTitulo = new JLabel("Registrar Apertura de Caja", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 18));
-        lblTitulo.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+        lblTitulo.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         add(lblTitulo, BorderLayout.NORTH);
 
         // --- Panel Central (Formulario) ---
@@ -88,20 +90,23 @@ public class AperturaCajaView extends JPanel {
 
         add(panelFormulario, BorderLayout.CENTER);
 
-        // --- Panel Inferior (Botón) ---
+        // --- Panel Inferior (Botones) ---
         JPanel panelBoton = new JPanel(new FlowLayout(FlowLayout.CENTER));
         btnAbrirCaja = new JButton("Abrir Caja y Empezar Turno");
         btnAbrirCaja.setFont(new Font("Arial", Font.BOLD, 14));
         panelBoton.add(btnAbrirCaja);
+
+        // 🔹 Botón Salir
+        btnSalir = new JButton("Salir");
+        btnSalir.setFont(new Font("Arial", Font.PLAIN, 14));
+        panelBoton.add(btnSalir);
+
         add(panelBoton, BorderLayout.SOUTH);
     }
 
     // --------------------------------------------------------------------------
     // LÓGICA DE APERTURA
     // --------------------------------------------------------------------------
-    /**
-     * Lógica para abrir la caja, llama al DAO y utiliza el usuario de la sesión.
-     */
     private void abrirCaja() {
         try {
             // Obtener ID del usuario de la sesión
@@ -109,15 +114,16 @@ public class AperturaCajaView extends JPanel {
 
             // Validación de formato y creación de BigDecimal
             String saldoText = txtSaldoInicial.getText().trim().replace(',', '.');
-            if(saldoText.isEmpty()){
-                JOptionPane.showMessageDialog(this,"Por favor ingresar un saldo inicial","Saldo inicial vacio",JOptionPane.ERROR_MESSAGE);
+            if (saldoText.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Por favor ingresar un saldo inicial", "Saldo inicial vacío", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             BigDecimal saldoInicial = new BigDecimal(saldoText);
-            if(saldoInicial.compareTo(BigDecimal.ZERO)<0){
-                JOptionPane.showMessageDialog(this,"El saldo inicial no puede ser negativo","Saldo inicial Negativo",JOptionPane.ERROR_MESSAGE);
+            if (saldoInicial.compareTo(BigDecimal.ZERO) < 0) {
+                JOptionPane.showMessageDialog(this, "El saldo inicial no puede ser negativo", "Saldo inicial negativo", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
             // Crear el objeto AperturaCaja
             AperturaCaja nuevaCaja = new AperturaCaja(
                     idUsuario,
@@ -131,7 +137,11 @@ public class AperturaCajaView extends JPanel {
             int idGenerado = cajaDAO.abrirCaja(nuevaCaja);
 
             if (idGenerado > 0) {
-                // Éxito. En lugar de this.dispose(), cerramos la ventana contenedora.
+                JOptionPane.showMessageDialog(this,
+                        "Caja abierta correctamente.",
+                        "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+                // Cerrar ventana contenedora
                 JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
                 if (topFrame != null) {
                     topFrame.dispose();
@@ -154,4 +164,22 @@ public class AperturaCajaView extends JPanel {
                     "Error General", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    // --------------------------------------------------------------------------
+    // SALIR
+    // --------------------------------------------------------------------------
+    private void salir() {
+        int opcion = JOptionPane.showConfirmDialog(this,
+                "¿Desea salir del formulario de Apertura de Caja?",
+                "Confirmar salida",
+                JOptionPane.YES_NO_OPTION);
+
+        if (opcion == JOptionPane.YES_OPTION) {
+            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            if (topFrame != null) {
+                topFrame.dispose();
+            }
+        }
+    }
+
 }

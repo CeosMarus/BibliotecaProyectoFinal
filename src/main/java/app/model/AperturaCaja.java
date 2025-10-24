@@ -13,11 +13,11 @@ public class AperturaCaja {
     private BigDecimal saldoInicial;
     private int estado;           // 1 = Activa, 0 = Cerrada
 
-    // 🏗️ Constructor vacío
+    //  Constructor vacío
     public AperturaCaja() {
     }
 
-    // 🏗️ Constructor completo (con id)
+    //  Constructor completo (con id)
     public AperturaCaja(Integer id, int idUsuario, Date fecha, Date hora, BigDecimal saldoInicial, int estado) {
         this.id = id;
         this.idUsuario = idUsuario;
@@ -27,7 +27,7 @@ public class AperturaCaja {
         this.estado = estado;
     }
 
-    // 🏗️ Constructor sin id (para inserciones nuevas)
+    //  Constructor sin id (para inserciones nuevas)
     public AperturaCaja(int idUsuario, Date fecha, Date hora, BigDecimal saldoInicial, int estado) {
         this(null, idUsuario, fecha, hora, saldoInicial, estado);
     }

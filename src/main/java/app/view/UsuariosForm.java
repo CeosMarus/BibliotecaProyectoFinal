@@ -36,7 +36,6 @@ public class UsuariosForm {
     private JCheckBox chkMostrar;
 
 
-
     //-----Metodos-----
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
     private final DefaultTableModel model = new DefaultTableModel(
