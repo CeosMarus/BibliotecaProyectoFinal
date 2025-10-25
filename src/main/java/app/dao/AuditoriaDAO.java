@@ -6,6 +6,8 @@ import app.model.Auditoria;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class AuditoriaDAO {
 
@@ -51,14 +53,32 @@ public class AuditoriaDAO {
     }
 
     // 🔹 LISTAR TODOS LOS REGISTROS
-    public List<Auditoria> listar() throws SQLException {
-        String sql = "SELECT id, fechaHora, idUsuario, modulo, accion, detalle FROM Auditoria ORDER BY fechaHora DESC";
-        List<Auditoria> lista = new ArrayList<>();
+    public List<Map<String, Object>> listarConUsuario() throws SQLException {
+        String sql = """
+        SELECT A.id, A.fechaHora, A.modulo, A.accion, A.detalle,
+               U.id AS idUsuario, U.nombreUsuario, U.rol
+        FROM Auditoria A
+        INNER JOIN Usuario U ON A.idUsuario = U.id
+        ORDER BY A.fechaHora DESC
+    """;
+
+        List<Map<String, Object>> lista = new ArrayList<>();
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) lista.add(mapAuditoria(rs));
+            while (rs.next()) {
+                Map<String, Object> fila = new HashMap<>();
+                fila.put("id", rs.getInt("id"));
+                fila.put("fechaHora", rs.getTimestamp("fechaHora"));
+                fila.put("modulo", rs.getString("modulo"));
+                fila.put("accion", rs.getString("accion"));
+                fila.put("detalle", rs.getString("detalle"));
+                fila.put("idUsuario", rs.getInt("idUsuario"));
+                fila.put("usuario", rs.getString("nombreUsuario"));
+                fila.put("rol", rs.getString("rol"));
+                lista.add(fila);
+            }
         }
         return lista;
     }
