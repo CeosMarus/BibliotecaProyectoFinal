@@ -1,0 +1,16 @@
+[33m58249e1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mbranchLuis[m[33m)[m Se actualizo AuditoriaDAO para listar con JOIN a Usuario
+[33m72f8f80[m Se creó nuevo Package Utility y Auditoria Logger
+[33m1db4a08[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/branchCesar[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m, [m[1;32mbranchCesar[m[33m)[m init commit 'Actualizacion de Autor, ejemplar, ejemplarDAO, ejemplarform, libro, libroDAO, libroform, en el cual funcionan correctamente todos, codigo de Axel agregado de apertura de caja, multa, cja en movimiento entre si 22 de oct'
+[33mebf3876[m init commit 'Actualizacion de Autor, ejemplar, ejemplarDAO, ejemplarform, libro, libroDAO, libroform, en el cual funcionan correctamente todos entre si 22 de oct'
+[33m083c59d[m Se agrego el MainMenu, se definieron roles en usuarios y se modifico el login
+[33me2597e8[m Merge remote-tracking branch 'github/main'
+[33mc08df0d[m init commit 'Actualizacion de ejemplar form, autor, libro, categoria y seeds para inicio de sesion  '
+[33m4ea2dbf[m este es un comite de prueba, pero se agrego un metodo para cerrar sesión
+[33m004c401[m init commit 'Actualizacion del View de Autor y creacion de Usuario Admin y por si no funcona esta User2 '
+[33m111ac79[m init commit 'Actualizacion del View de Autor'
+[33mf49ad47[m subiendo modulo de usuario,login
+[33m4c6809a[m init commit 'Segunda Actualizacion con mejoras en la conexion'
+[33mbac37dd[m Merge remote-tracking branch 'github/main'
+[33mf0c5a26[m init commit 'Actualizacion de DAOS y Model en su totalidad'
+[33m7c83a8a[m Create README.md
+[33me4fb9f8[m init commit
