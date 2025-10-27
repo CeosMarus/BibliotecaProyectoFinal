@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.math.BigDecimal; // Importación necesaria para el saldo
 
-public class AperturaCajaDAO {
+//Se utiliza extends para utilizar auditar(), en cualquier metodo
+public class AperturaCajaDAO extends BaseDAO {
 
     // 🟢 ABRIR CAJA (Insertar nueva apertura)
     public int abrirCaja(AperturaCaja caja) throws SQLException {
@@ -34,6 +35,8 @@ public class AperturaCajaDAO {
                     int id = rs.getInt(1);
                     caja.setId(id);
                     JOptionPane.showMessageDialog(null, "Caja abierta correctamente.");
+                    //Registar la accion en Auditoria
+                    auditar("Financiero", "AbrirCaja", "Se realizo apertura de caja:  ID " + caja.getId());
                     return id;
                 }
             }
@@ -52,6 +55,8 @@ public class AperturaCajaDAO {
             int filas = ps.executeUpdate();
             if (filas > 0) {
                 JOptionPane.showMessageDialog(null, "Caja cerrada correctamente.");
+                //Registar la accion en Auditoria
+                auditar("Financiero", "CerrarCaja", "Se realizo el cierre de caja:  ID " + id);
                 return true;
             }
         }
@@ -76,6 +81,8 @@ public class AperturaCajaDAO {
             int filas = ps.executeUpdate();
             if (filas > 0) {
                 JOptionPane.showMessageDialog(null, "Apertura de caja desactivada correctamente.");
+                //Registar la accion en Auditoria
+                auditar("Financiero", "DesactivarAperturaCaja", "Se desactivo apertura de caja :  ID " + id);
                 return true;
             }
         }
@@ -90,7 +97,10 @@ public class AperturaCajaDAO {
 
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapAperturaCaja(rs);
+                if (rs.next()) {   //Registar la accion en Auditoria
+                    auditar("Financiero", "BuscarAperturaCaja", "Se realizo busqueda de apertura:  ID " + id);
+                    return mapAperturaCaja(rs);
+                }
             }
         }
         return null;
@@ -108,6 +118,8 @@ public class AperturaCajaDAO {
                 lista.add(mapAperturaCaja(rs));
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Financiero", "ListarAperturasCaja", "Se listo todas las aperturas de caja");
         return lista;
     }
 
@@ -123,6 +135,8 @@ public class AperturaCajaDAO {
                 lista.add(mapAperturaCaja(rs));
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Financiero", "ListarAperturasActivas", "Se listo apeturas de caja activas");
         return lista;
     }
 
@@ -139,10 +153,14 @@ public class AperturaCajaDAO {
              ResultSet rs = ps.executeQuery()) {
 
             if (rs.next()) {
+                //Registar la accion en Auditoria
+                auditar("Financiero", "ObtenerAperturaActiva", "Se busco paertura de caja activa");
                 // Se usa el método de mapeo, que ya es correcto
                 return mapAperturaCaja(rs);
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Financiero", "ObtenerAperturaActiva", "Se busco paertura de caja activa, no hay caja activa");
         return null; // Retorna null si no hay caja activa
     }
 
