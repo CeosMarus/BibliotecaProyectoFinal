@@ -107,9 +107,9 @@ public class MultaView extends JPanel {
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 18));
         add(lblTitulo, BorderLayout.NORTH);
 
-        // Panel Central: Dividido en Formulario (Izquierda) y Tabla (Derecha)
+        // Panel Central posicion y tamanio
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setResizeWeight(0.35); // 35% para el formulario
+        splitPane.setResizeWeight(0.35);
 
         // A. Panel de Formulario (Izquierda)
         JPanel panelFormulario = createFormPanel();
@@ -129,9 +129,7 @@ public class MultaView extends JPanel {
         add(panelBotonInferior, BorderLayout.SOUTH);
     }
 
-    // --------------------------------------------------------------------------
     // CREACIÓN DE PANELES
-    // --------------------------------------------------------------------------
 
     private JPanel createFormPanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -215,15 +213,15 @@ public class MultaView extends JPanel {
         tablaMultas.setAutoCreateRowSorter(true);
 
         JTextField txtBuscar = new JTextField(15);
-        JButton btnBuscar = new JButton("Buscar"); // El texto se mantiene genérico
+        JButton btnBuscar = new JButton("Buscar");
 
         JPanel pnlBusqueda = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        // 🆕 MODIFICACIÓN: Buscar por Nombre de Cliente
+        //  MODIFICACIÓN: Buscar por Nombre de Cliente
         pnlBusqueda.add(new JLabel("Buscar por Nombre Cliente:"));
         pnlBusqueda.add(txtBuscar);
         pnlBusqueda.add(btnBuscar);
 
-        // 🆕 MODIFICACIÓN: Llamar al nuevo método de búsqueda por nombre
+        // Identificaion, buscar por nombre
         btnBuscar.addActionListener(e -> buscarMultaPorNombreCliente(txtBuscar.getText().trim()));
 
         panel.add(pnlBusqueda, BorderLayout.NORTH);
@@ -232,13 +230,9 @@ public class MultaView extends JPanel {
         return panel;
     }
 
-    // --------------------------------------------------------------------------
     // LÓGICA DE TABLA Y CARGA DE DATOS
-    // --------------------------------------------------------------------------
 
-    /**
-     * Carga la tabla usando MultaDetalle para mostrar el nombre.
-     */
+    /* Carga la tabla usando MultaDetalle para mostrar el nombre. */
     private void cargarTablaMultas() {
         modeloTabla.setRowCount(0);
         try {
@@ -326,9 +320,7 @@ public class MultaView extends JPanel {
         btnGuardar.setEnabled(!habilitarEdicion);
     }
 
-    // --------------------------------------------------------------------------
     // LÓGICA CRUD: CREAR, ACTUALIZAR, ELIMINAR, BUSCAR
-    // --------------------------------------------------------------------------
 
     private void guardarMulta() {
         try {
@@ -471,9 +463,7 @@ public class MultaView extends JPanel {
         }
     }
 
-    /**
-     * 🆕 MODIFICACIÓN: Nuevo método de búsqueda por nombre de cliente.
-     */
+    /*MODIFICACIÓN: Nuevo método de búsqueda por nombre de cliente. */
     private void buscarMultaPorNombreCliente(String nombre) {
         if (nombre.isEmpty()) {
             cargarTablaMultas(); // Si el campo está vacío, recarga la lista completa
@@ -523,9 +513,7 @@ public class MultaView extends JPanel {
         cargarTablaMultas();
     }
 
-    // --------------------------------------------------------------------------
     // LÓGICA DE CARGA Y CASCADA DE COMBOBOXES
-    // --------------------------------------------------------------------------
 
     /** Carga todos los clientes activos. **/
     private void cargarClientes() {
@@ -579,9 +567,7 @@ public class MultaView extends JPanel {
     }
 
 
-    // --------------------------------------------------------------------------
-    // FUNCIÓN PARA ABRIR LA VISTA DE EXONERACIONES
-    // --------------------------------------------------------------------------
+    //FUNCIÓN PARA ABRIR LA VISTA DE EXONERACIONES
     private void abrirVentanaExoneraciones() {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Gestión de Exoneraciones de Multas");
@@ -593,9 +579,7 @@ public class MultaView extends JPanel {
         });
     }
 
-    // --------------------------------------------------------------------------
-    // MÉTODO MAIN PARA PRUEBA INDIVIDUAL
-    // --------------------------------------------------------------------------
+    // Metodo main para realizar prubas independentes
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame(" Gestión de Multas (CRUD)");

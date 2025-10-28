@@ -101,7 +101,7 @@ public class ClienteDAO {
     // LISTAR todos los clientes
     public List<Cliente> listar() {
         List<Cliente> lista = new ArrayList<>();
-        String sql = "SELECT id, nombre, nit, telefono, correo, estado FROM Cliente ORDER BY id DESC";
+        String sql = "SELECT id, nombre, nit, telefono, correo, estado FROM Cliente ORDER BY id ASC ";
 
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
@@ -139,7 +139,7 @@ public class ClienteDAO {
     // BUSCAR clientes por nombre (búsqueda parcial)
     public List<Cliente> buscarPorNombre(String nombre) {
         List<Cliente> lista = new ArrayList<>();
-        String sql = "SELECT id, nombre, nit, telefono, correo, estado FROM Cliente WHERE nombre LIKE ? ORDER BY id DESC";
+        String sql = "SELECT id, nombre, nit, telefono, correo, estado FROM Cliente WHERE nombre LIKE ? ORDER BY nombre DESC";
 
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -157,6 +157,29 @@ public class ClienteDAO {
         return lista;
     }
 
+    public boolean existeNit(String nit, int idExcluir) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Cliente WHERE nit = ? AND id != ?";
+
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, nit);
+            ps.setInt(2, idExcluir);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error al verificar NIT: " + e.getMessage());
+            throw e;
+        }
+        return false;
+    }
+
+
     // Helper: mapear ResultSet a Cliente
     private Cliente mapCliente(ResultSet rs) throws SQLException {
         return new Cliente(
@@ -168,4 +191,17 @@ public class ClienteDAO {
                 rs.getInt("estado")
         );
     }
+
+    // mapeador 2
+    private Cliente mapClientes(ResultSet rs) throws SQLException {
+        Cliente cliente = new Cliente();
+        cliente.setId(rs.getInt("id"));
+        cliente.setNombre(rs.getString("nombre"));
+        cliente.setNit(rs.getString("nit"));
+        cliente.setTelefono(rs.getString("telefono"));
+        cliente.setCorreo(rs.getString("correo"));
+        cliente.setEstado(rs.getInt("estado"));
+        return cliente;
+    }
+
 }
