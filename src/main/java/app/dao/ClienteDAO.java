@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClienteDAO {
+public class ClienteDAO extends BaseDAO {
 
     // INSERTAR un nuevo cliente, devuelve ID generado
     public int insertar(Cliente c) {
@@ -34,6 +34,8 @@ public class ClienteDAO {
                     if (rs.next()) {
                         int id = rs.getInt(1);
                         c.setId(id);
+                        //Registar la accion en Auditoria
+                        auditar("Clientes", "NuevoCliente", "Se creo el nuevo cliente: " + c.getNombre());
                         return id;
                     }
                 }
@@ -63,12 +65,18 @@ public class ClienteDAO {
             ps.setInt(5, c.getEstado());
             ps.setInt(6, c.getId());
 
-            return ps.executeUpdate() > 0;
+            int  filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Clientes", "ActualizarCliente", "Se actualizo el cliente: " + c.getNombre());
+                return true;
+            }
 
         } catch (SQLException e) {
             System.err.println("Error al actualizar cliente: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     // ELIMINAR físicamente un cliente
@@ -77,11 +85,17 @@ public class ClienteDAO {
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Clientes", "EliminarCliente", "Se elimino definitivamente el cliente con ID: " + id);
+                return true;
+            }
         } catch (SQLException e) {
             System.err.println("Error al eliminar cliente: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     // CAMBIAR ESTADO (activar/inactivar)
@@ -91,11 +105,17 @@ public class ClienteDAO {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, nuevoEstado);
             ps.setInt(2, id);
-            return ps.executeUpdate() > 0;
+            int filas =  ps.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Clientes", "CambioEstadoCliente", "Cliente ID: " + id + "cambio a estado: " + nuevoEstado);
+                return true;
+            }
         } catch (SQLException e) {
             System.err.println("Error al cambiar estado del cliente: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     // LISTAR todos los clientes
@@ -114,6 +134,8 @@ public class ClienteDAO {
         } catch (SQLException e) {
             System.err.println("Error al listar clientes: " + e.getMessage());
         }
+        //Registar la accion en Auditoria
+        auditar("Clientes", "ListarClientes", "Se listaron todos los clientes");
         return lista;
     }
 
@@ -126,6 +148,8 @@ public class ClienteDAO {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    //Registar la accion en Auditoria
+                    auditar("Clientes", "BuscarCliente", "Se busco el cliente con ID: " + id);
                     return mapCliente(rs);
                 }
             }
@@ -154,6 +178,8 @@ public class ClienteDAO {
         } catch (SQLException e) {
             System.err.println("Error al buscar cliente por nombre: " + e.getMessage());
         }
+        //Registar la accion en Auditoria
+        auditar("Clientes", "BuscarCliente", "Se busco el cliente: " + nombre);
         return lista;
     }
 
@@ -168,6 +194,8 @@ public class ClienteDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    //Registar la accion en Auditoria
+                    auditar("Clientes", "ValidarNit", "Se valido el nit: " + nit);
                     return rs.getInt(1) > 0;
                 }
             }

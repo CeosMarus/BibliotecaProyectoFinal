@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CategoriaDAO {
+public class CategoriaDAO extends BaseDAO{
 
     // ➕ INSERTAR NUEVA CATEGORÍA
     public boolean agregarCategoria(Categoria categoria) {
@@ -31,6 +31,8 @@ public class CategoriaDAO {
                     }
                 }
                 JOptionPane.showMessageDialog(null, "Categoría agregada exitosamente.");
+                //Registar la accion en Auditoria
+                auditar("Catalogo-Categoria", "NuevaCategoria", "Se creo una nueva categoria:  " + categoria.getNombre());
                 return true;
             }
 
@@ -57,6 +59,8 @@ public class CategoriaDAO {
 
             if (filas > 0) {
                 JOptionPane.showMessageDialog(null, "Categoría actualizada exitosamente.");
+                //Registar la accion en Auditoria
+                auditar("Catalogo-Categoria", "ActualizarCategoria", "Se modifico la categoria: " + categoria.getNombre());
                 return true;
             }
 
@@ -82,6 +86,8 @@ public class CategoriaDAO {
 
             if (filas > 0) {
                 JOptionPane.showMessageDialog(null, "Categoría desactivada correctamente.");
+                //Registar la accion en Auditoria
+                auditar("Catalogo-Categoria", "DesactivarCategoria", "Se desactivo la categoria ID:  " + id);
                 return true;
             }
 
@@ -102,6 +108,8 @@ public class CategoriaDAO {
 
             if (filas > 0) {
                 JOptionPane.showMessageDialog(null, "Categoría activada correctamente.");
+                //Registar la accion en Auditoria
+                auditar("Catalogo-Categoria", "ActivarCategoria", "Se habilito nuevamente la categoria ID:  " + id);
                 return true;
             }
 
@@ -127,6 +135,8 @@ public class CategoriaDAO {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al listar las categorías: " + e.getMessage());
         }
+        //Registar la accion en Auditoria
+        auditar("Catalogo-Categoria", "ListarCategorias", "Se listaron todas las categorias");
         return lista;
     }
 
@@ -146,6 +156,8 @@ public class CategoriaDAO {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al listar las categorías activas: " + e.getMessage());
         }
+        //Registar la accion en Auditoria
+        auditar("Catalogo-Categoria", "ListarCategorias", "Se listaron las categorias activas");
         return lista;
     }
 
@@ -158,6 +170,8 @@ public class CategoriaDAO {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    //Registar la accion en Auditoria
+                    auditar("Catalogo-Categoria", "ListarCategoria", "Se busco la categoria con ID: " + id);
                     return mapCategoria(rs);
                 }
             }
@@ -186,6 +200,8 @@ public class CategoriaDAO {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al buscar categorías: " + e.getMessage());
         }
+        //Registar la accion en Auditoria
+        auditar("Catalogo-Categoria", "ListarCategoria", "Se busco la categoria: " + nombre);
         return lista;
     }
 

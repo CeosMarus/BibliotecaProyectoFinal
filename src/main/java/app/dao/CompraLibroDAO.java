@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompraLibroDAO {
+public class CompraLibroDAO extends BaseDAO {
 
     private Connection conn;
 
@@ -32,11 +32,16 @@ public class CompraLibroDAO {
             }
             ps.setInt(5, compra.getEstado());
             int rows = ps.executeUpdate();
-            return rows > 0;
+            if (rows > 0) {
+                //Registar la accion en Auditoria
+                auditar("ComprasLibro", "NuevaCompra", "Se registro la compra de la solicitud: " + compra.getIdSolicitud());
+                return true;
+            }
         } catch (SQLException e) {
             System.err.println("❌ Error al insertar CompraLibro: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     // 🟡 Actualizar registro
@@ -54,11 +59,17 @@ public class CompraLibroDAO {
             ps.setInt(5, compra.getEstado());
             ps.setInt(6, compra.getId());
             int rows = ps.executeUpdate();
-            return rows > 0;
+            if (rows > 0)
+            {
+                //Registar la accion en Auditoria
+                auditar("ComprasLibro", "ActualizarRegistro", "Se actualizo la compra con ID: " + compra.getId());
+                return true;
+            }
         } catch (SQLException e) {
             System.err.println("❌ Error al actualizar CompraLibro: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     // 🟢 Listar registros activos
@@ -81,6 +92,8 @@ public class CompraLibroDAO {
         } catch (SQLException e) {
             System.err.println("❌ Error al listar CompraLibro: " + e.getMessage());
         }
+        //Registar la accion en Auditoria
+        auditar("ComprasLibro", "ListarCompras", "Se listaron todas las compras activas");
         return lista;
     }
 
@@ -91,6 +104,8 @@ public class CompraLibroDAO {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    //Registar la accion en Auditoria
+                    auditar("ComprasLibro", "ListarCompras", "Se listo la compra con ID: " + id);
                     return new CompraLibro(
                             rs.getInt("id"),
                             rs.getInt("idSolicitud"),
@@ -106,6 +121,25 @@ public class CompraLibroDAO {
         }
         return null;
     }
+    // CAMBIAR ESTADO (activar/inactivar)
+    public boolean cambiarEstado(int id, int nuevoEstado) {
+        String sql = "UPDATE CompraLibro SET estado=? WHERE id=?";
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, nuevoEstado);
+            ps.setInt(2, id);
+            int filas =  ps.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("ComprasLibro", "CambioEstadoCompra", "La compra ID: " + id + " cambio a estado: " + nuevoEstado);
+                return true;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al cambiar estado del cliente: " + e.getMessage());
+            return false;
+        }
+        return false;
+    }
 
     // 🟢 Eliminación lógica
     public boolean eliminarLogico(int id) {
@@ -113,10 +147,15 @@ public class CompraLibroDAO {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             int rows = ps.executeUpdate();
-            return rows > 0;
+            if (rows > 0) {
+                //Registar la accion en Auditoria
+                auditar("ComprasLibro", "EliminarCompra", "Se elimino compra con ID: " + id);
+                return true;
+            }
         } catch (SQLException e) {
             System.err.println("❌ Error al eliminar CompraLibro: " + e.getMessage());
             return false;
         }
+        return false;
     }
 }
