@@ -7,7 +7,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 import app.db.Conexion;
 
-public class AutorDAO {
+public class AutorDAO extends BaseDAO{
 
     // INSERTAR
     public boolean agregarAutor(Autor autor) {
@@ -26,6 +26,8 @@ public class AutorDAO {
 
             if (filas > 0) {
                 JOptionPane.showMessageDialog(null, "Autor agregado exitosamente.");
+                //Registar la accion en Auditoria
+                auditar("Catalogo-Autor", "InsertarAutor", "Se ingreso un nuevo autor" + autor.getNombre());
                 return true;
             }
 
@@ -54,6 +56,8 @@ public class AutorDAO {
 
             if (filas > 0) {
                 JOptionPane.showMessageDialog(null, "Autor actualizado exitosamente.");
+                //Registar la accion en Auditoria
+                auditar("Catalogo-Autor", "ActualizarAutor", "Se modifico el autor" + autor.getId());
                 return true;
             }
 
@@ -79,6 +83,8 @@ public class AutorDAO {
 
             if (filas > 0) {
                 JOptionPane.showMessageDialog(null, "Autor desactivado exitosamente.");
+                //Registar la accion en Auditoria
+                auditar("Catalogo-Autor", "DesactivarAutor", "Se desactivo el autor con ID " + id);
                 return true;
             }
 
@@ -99,6 +105,8 @@ public class AutorDAO {
 
             if (filas > 0) {
                 JOptionPane.showMessageDialog(null, "Autor activado nuevamente.");
+                //Registar la accion en Auditoria
+                auditar("Catalogo-Autor", "ReactivarAutor", "Se activo nuevamente el autor con ID " + id);
                 return true;
             }
 
@@ -129,7 +137,8 @@ public class AutorDAO {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al listar autores activos: " + e.getMessage());
         }
-
+        //Registar la accion en Auditoria
+        auditar("Catalogo-Autor", "ListarAutores", "Se listo todos los autores activos");
         return lista;
     }
 
@@ -154,7 +163,8 @@ public class AutorDAO {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al listar todos los autores: " + e.getMessage());
         }
-
+        //Registar la accion en Auditoria
+        auditar("Catalogo-Autor", "ListarAutores", "Se listo todos los autores activos e inactivos");
         return lista;
     }
 }

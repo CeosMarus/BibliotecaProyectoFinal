@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BitacoraInventarioDAO {
+public class BitacoraInventarioDAO extends BaseDAO {
 
     private final Conexion conexion;
 
@@ -32,12 +32,18 @@ public class BitacoraInventarioDAO {
             stmt.setString(6, bitacora.getUsuarioResponsable());
             stmt.setInt(7, bitacora.getEstado());
 
-            return stmt.executeUpdate() > 0;
+            int filas = stmt.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Inventarios", "NuevaBitacoraInventario", "Se creo una nueva bitacora de inventario con id: " + bitacora.getId());
+                return true;
+            }
 
         } catch (SQLException e) {
             System.err.println("Error al insertar BitacoraInventario: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     // ✅ Listar todos los movimientos
@@ -66,6 +72,8 @@ public class BitacoraInventarioDAO {
         } catch (SQLException e) {
             System.err.println("Error al listar BitacoraInventario: " + e.getMessage());
         }
+        //Registar la accion en Auditoria
+        auditar("Inventarios", "ListarBitacoraInventario", "Se listo todas las bitacoras de inventario");
         return lista;
     }
 
@@ -79,6 +87,8 @@ public class BitacoraInventarioDAO {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
+                    //Registar la accion en Auditoria
+                    auditar("Inventarios", "ListarBitacoraInventario", "Se listo todas la bitacora con ID: " + id);
                     return new BitacoraInventario(
                             rs.getInt("id"),
                             rs.getInt("idInventario"),
@@ -89,6 +99,7 @@ public class BitacoraInventarioDAO {
                             rs.getString("usuarioResponsable"),
                             rs.getInt("estado")
                     );
+
                 }
             }
 
@@ -114,12 +125,18 @@ public class BitacoraInventarioDAO {
             stmt.setInt(7, bitacora.getEstado());
             stmt.setInt(8, bitacora.getId());
 
-            return stmt.executeUpdate() > 0;
+            int filas = stmt.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Inventarios", "ActualizarBitacoraInventario", "Se actualizo la bitacora con id: " + bitacora.getId());
+                return true;
+            }
 
         } catch (SQLException e) {
             System.err.println("Error al actualizar BitacoraInventario: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     // ✅ Eliminar (registro físico)
@@ -128,11 +145,17 @@ public class BitacoraInventarioDAO {
         try (Connection conn = conexion.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
+            int filas = stmt.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Inventarios", "EliminarBitacoraInventario", "Se elimino la bitarcora ID: " + id);
+                return true;
+            }
         } catch (SQLException e) {
             System.err.println("Error al eliminar BitacoraInventario: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     // ✅ Cambiar estado (activar/inactivar)
@@ -142,10 +165,17 @@ public class BitacoraInventarioDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, nuevoEstado);
             stmt.setInt(2, id);
-            return stmt.executeUpdate() > 0;
+            int filas = stmt.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Inventarios", "CabioEstadoBitacora", "Se cambio el estado de bitacora: " + id + "a estado: " + nuevoEstado);
+                return true;
+
+            }
         } catch (SQLException e) {
             System.err.println("Error al cambiar estado en BitacoraInventario: " + e.getMessage());
             return false;
         }
+        return false;
     }
 }

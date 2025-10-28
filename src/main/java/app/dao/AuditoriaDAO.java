@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-public class AuditoriaDAO {
+public class AuditoriaDAO extends BaseDAO {
 
     // 🔹 INSERTAR NUEVO REGISTRO DE AUDITORÍA
     public int insertar(Auditoria a) throws SQLException {
@@ -46,7 +46,12 @@ public class AuditoriaDAO {
 
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapAuditoria(rs);
+                if (rs.next())
+                {
+                    //Registar la accion en Auditoria
+                    auditar("Auditoria", "ListarAuditoria", "Se listo el registro con ID: " + id);
+                    return mapAuditoria(rs);
+                }
             }
         }
         return null;
@@ -80,6 +85,8 @@ public class AuditoriaDAO {
                 lista.add(fila);
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Auditoria", "ListarAuditoria", "Se listaron todas las auditorias realizadas");
         return lista;
     }
 
