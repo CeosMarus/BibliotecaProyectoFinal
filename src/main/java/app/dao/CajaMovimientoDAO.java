@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CajaMovimientoDAO {
+public class CajaMovimientoDAO extends BaseDAO {
 
     // 🔹 INSERTAR MOVIMIENTO
     public int insertar(CajaMovimiento movimiento) throws SQLException {
@@ -32,6 +32,8 @@ public class CajaMovimientoDAO {
                 if (rs.next()) {
                     int id = rs.getInt(1);
                     movimiento.setId(id);
+                    //Registar la accion en Auditoria
+                    auditar("Finaciero", "NuevoMovimiento", "Se realizo un nuevo movimiento de caja id: " + movimiento.getId());
                     return id;
                 }
             }
@@ -63,8 +65,14 @@ public class CajaMovimientoDAO {
             // Condición WHERE
             ps.setInt(8, movimiento.getId());
 
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Financiero", "ActualizarMovimiento", "Se modifico el movimiento con id: " + movimiento.getId());
+                return true;
+            }
         }
+        return false;
     }
 
     // --------------------------------------------------------------------------
@@ -83,7 +91,12 @@ public class CajaMovimientoDAO {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 ps.setInt(1, idMovimiento);
-                return ps.executeUpdate() > 0;
+                int filas = ps.executeUpdate();
+                if (filas > 0) {
+                    //Registar la accion en Auditoria
+                    auditar("Financiero", "AnularMovimiento", "Se desactivo el movimiento con ID: " + idMovimiento);
+                    return true;
+                }
             }
             return false;
         }
@@ -104,6 +117,8 @@ public class CajaMovimientoDAO {
                 lista.add(mapCajaMovimiento(rs));
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Financiero", "ListarMovimientos", "Se listaron todos los movimientos realizados");
         return lista;
     }
 
@@ -122,6 +137,8 @@ public class CajaMovimientoDAO {
                 }
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Financiero", "ListarMovimentos", "Se listaron todos los movimientos realizados por el usuario con ID: " + idUsuario);
         return lista;
     }
 
@@ -133,7 +150,12 @@ public class CajaMovimientoDAO {
 
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapCajaMovimiento(rs);
+                if (rs.next())
+                {
+                    //Registar la accion en Auditoria
+                    auditar("Financiero", "ListarMovimiento", "Se busco el movimiento con id: " + id);
+                    return mapCajaMovimiento(rs);
+                }
             }
         }
         return null;
