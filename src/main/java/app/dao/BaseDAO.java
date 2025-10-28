@@ -8,8 +8,11 @@ import app.utility.AuditoriaLogger; //Iportacion para Auditoria, registrar accio
 //No representa una entidad concreta por si mismo
 public abstract class BaseDAO
 {
-    //metodo accesible
     protected void auditar(String modulo, String accion, String detalle) {
-        AuditoriaLogger.registrar(modulo, accion, detalle);
+        try {
+            AuditoriaLogger.registrar(modulo, accion, detalle);
+        } catch (Exception e) {
+            System.err.println("Error registrando auditoría: " + e.getMessage());
+        }
     }
 }

@@ -5,7 +5,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArqueoDAO {
+public class ArqueoDAO extends BaseDAO {
 
     private Connection conn;
 
@@ -25,7 +25,12 @@ public class ArqueoDAO {
             ps.setFloat(5, arqueo.getContadoEfectivo());
             ps.setFloat(6, arqueo.getDiferencia());
             ps.setInt(7, arqueo.getIdUsuario());
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                auditar("Financiero", "NuevoArqueo", "Se realizó arqueo, ID: " + arqueo.getId());
+                return true;
+            }
+            return false;
         }
     }
 
@@ -42,6 +47,8 @@ public class ArqueoDAO {
             ps.setFloat(6, arqueo.getDiferencia());
             ps.setInt(7, arqueo.getIdUsuario());
             ps.setInt(8, arqueo.getId());
+            //Registar la accion en Auditoria
+            auditar("Financiero", "ActualizarArqueo", "Se modifico el arqueo con ID: " + arqueo.getId());
             return ps.executeUpdate() > 0;
         }
     }
@@ -51,6 +58,8 @@ public class ArqueoDAO {
         String sql = "UPDATE Arqueo SET estado = 0 WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
+            //Registar la accion en Auditoria
+            auditar("Financiero", "DesactivarArqueo", "Se Desactivo el arqueo con ID: " + id);
             return ps.executeUpdate() > 0;
         }
     }
@@ -62,6 +71,8 @@ public class ArqueoDAO {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
+                //Registar la accion en Auditoria
+                auditar("Financiero", "ListarArqueo", "Se busco el arqueo con ID: " + id);
                 return mapearArqueo(rs);
             }
             return null;
@@ -78,6 +89,8 @@ public class ArqueoDAO {
                 lista.add(mapearArqueo(rs));
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Financiero", "ListarArqueos", "Se listaron todos los arqueos activos");
         return lista;
     }
 

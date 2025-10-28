@@ -154,13 +154,13 @@ public class AperturaCajaDAO extends BaseDAO {
 
             if (rs.next()) {
                 //Registar la accion en Auditoria
-                auditar("Financiero", "ObtenerAperturaActiva", "Se busco paertura de caja activa");
+                auditar("Financiero", "ListarAperturaActiva", "Se busco apertura de caja activa");
                 // Se usa el método de mapeo, que ya es correcto
                 return mapAperturaCaja(rs);
             }
         }
         //Registar la accion en Auditoria
-        auditar("Financiero", "ObtenerAperturaActiva", "Se busco paertura de caja activa, no hay caja activa");
+        auditar("Financiero", "ListarAperturaActiva", "Se busco paertura de caja activa, no hay caja activa");
         return null; // Retorna null si no hay caja activa
     }
 
