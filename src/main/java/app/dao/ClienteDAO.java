@@ -7,7 +7,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClienteDAO {
+public class ClienteDAO extends BaseDAO {
 
     /* Insertar un nuevo cliente */
     public int insertar(Cliente c) {
@@ -28,7 +28,14 @@ public class ClienteDAO {
 
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) return rs.getInt(1);
+                if (rs.next())
+                {
+                    int idGenerado = rs.getInt(1);
+                    //Registo en auditoria
+                    auditar("Cliente", "CrearCliente",
+                            "Se creo un nuevo cliente ID: " + idGenerado +" ,Nombre: " + c.getNombre());
+                    return idGenerado;
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error al insertar cliente: " + e.getMessage());
@@ -47,11 +54,23 @@ public class ClienteDAO {
             ps.setString(4, c.getCorreo());
             ps.setInt(5, c.getEstado());
             ps.setInt(6, c.getId());
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0)
+            {
+                //Registo en auditoria
+                try {
+                    auditar("Cliente", "ActualizarCliente",
+                            "Se actualizó el cliente ID: " + c.getId() + ", Nit: " + c.getNit());
+                } catch (Exception ex) {
+                    System.err.println("No se pudo registrar la auditoría de actualización del cliente ID: " + c.getId());
+                }
+                return true;
+            }
         } catch (SQLException e) {
             System.err.println("Error al actualizar cliente: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     /** Eliminacion logica (estado = 0) */
@@ -60,11 +79,19 @@ public class ClienteDAO {
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0)
+            {
+                //Registo en auditoria
+                auditar("Cliente", "DesactivarCliente",
+                        "Se desactivo cliente ID: " + id );
+                return true;
+            }
         } catch (SQLException e) {
             System.err.println("Error al eliminar cliente: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     /* ACTIVAR cliente (estado = 1) */
@@ -74,11 +101,19 @@ public class ClienteDAO {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, nuevoEstado);
             ps.setInt(2, id);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0)
+            {
+                //Registo en auditoria
+                auditar("Cliente", "ActivarCliente",
+                        "Se activo cliente ID: " + id );
+                return true;
+            }
         } catch (SQLException e) {
             System.err.println("Error al cambiar estado del cliente: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     /* Lisatar todos los clientes (activos y desactivados) */
@@ -93,6 +128,9 @@ public class ClienteDAO {
         } catch (SQLException e) {
             System.err.println("Error al listar clientes: " + e.getMessage());
         }
+        //Registo en auditoria
+        auditar("Cliente", "ListarCliente",
+                "Se listo todos los clientes" );
         return lista;
     }
 
@@ -110,6 +148,9 @@ public class ClienteDAO {
         } catch (SQLException e) {
             System.err.println("Error al buscar cliente: " + e.getMessage());
         }
+        //Registo en auditoria
+        auditar("Cliente", "ListarCliente",
+                "Se listo clientes con nombre: " + nombre );
         return lista;
     }
 
