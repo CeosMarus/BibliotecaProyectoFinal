@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SolicitudCompraDAO {
+public class SolicitudCompraDAO extends BaseDAO {
 
     private Connection conn;
 
@@ -21,7 +21,7 @@ public class SolicitudCompraDAO {
     // 🟢 Listar todas las solicitudes activas
     public List<SolicitudCompra> listar() {
         List<SolicitudCompra> lista = new ArrayList<>();
-        String sql = "SELECT * FROM SolicitudCompra WHERE estado <> 0"; // Sólo activas
+        String sql = "SELECT * FROM SolicitudCompra WHERE estado <> 1"; // Sólo activas
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -40,16 +40,22 @@ public class SolicitudCompraDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        //Registo en auditoria
+        auditar("SolicitudesCompra", "ListarSolicitud",
+                "Se listo las solicitudes de compra activas");
         return lista;
     }
 
     // 🟢 Obtener una solicitud por ID
     public SolicitudCompra obtenerPorId(int id) {
-        String sql = "SELECT * FROM SolicitudCompra WHERE id = ? AND estado <> 0";
+        String sql = "SELECT * FROM SolicitudCompra WHERE id = ? AND estado <> 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    //Registo en auditoria
+                    auditar("SolicitudesCompra", "ListarSolicitud",
+                            "Se listo las solicitudes de compra con ID = " + id);
                     return new SolicitudCompra(
                             rs.getInt("id"),
                             rs.getDate("fecha"),
@@ -77,7 +83,13 @@ public class SolicitudCompraDAO {
             ps.setInt(4, solicitud.getCantidad());
             ps.setBigDecimal(5, new java.math.BigDecimal(solicitud.getCostoUnitario()));
             ps.setInt(6, solicitud.getEstado());
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registo en auditoria
+                auditar("SolicitudesCompra", "NuevaSolicitud",
+                        "Se creo una nueva solicitud de compra para el libro ID: " + solicitud.getIdLibro());
+                return true;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -95,7 +107,13 @@ public class SolicitudCompraDAO {
             ps.setBigDecimal(5, new java.math.BigDecimal(solicitud.getCostoUnitario()));
             ps.setInt(6, solicitud.getEstado());
             ps.setInt(7, solicitud.getId());
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registo en auditoria
+                auditar("SolicitudesCompra", "ActualizarSolicitud",
+                        "Se actualizo la solicitud de compra ID: " + solicitud.getId());
+                return true;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -107,7 +125,13 @@ public class SolicitudCompraDAO {
         String sql = "UPDATE SolicitudCompra SET estado = 0 WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registo en auditoria
+                auditar("SolicitudesCompra", "DesactivarSolicitud",
+                        "Se desactivo la solicitud de compra ID: " + id);
+                return true;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

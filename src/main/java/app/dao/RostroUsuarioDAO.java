@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 
-public class RostroUsuarioDAO {
+public class RostroUsuarioDAO extends BaseDAO {
 
     // INSERTAR RostroUsuario
     public int insertar(RostroUsuario r) throws SQLException {
@@ -30,6 +30,9 @@ public class RostroUsuarioDAO {
                     int id = rs.getInt(1);
                     r.setId(id);
                     JOptionPane.showMessageDialog(null, "Rostro registrado correctamente.");
+                    //Registo en auditoria
+                    auditar("Seguridad", "CrearRegistroRostro",
+                            "Se creo el registro de rostro para el usuario ID: " + r.getIdUsuario());
                     return id;
                 }
             }
@@ -55,7 +58,13 @@ public class RostroUsuarioDAO {
             ps.setInt(5, r.getId());
 
             boolean actualizado = ps.executeUpdate() > 0;
-            if (actualizado) JOptionPane.showMessageDialog(null, "Rostro actualizado correctamente.");
+            if (actualizado)
+            {
+                //Registo en auditoria
+                auditar("Seguridad", "ActualizarRegistroRostro",
+                        "Se actualizo el registro de rostro para el usuario ID: " + r.getIdUsuario());
+                JOptionPane.showMessageDialog(null, "Rostro actualizado correctamente.");
+            }
             return actualizado;
         }
     }
@@ -71,7 +80,13 @@ public class RostroUsuarioDAO {
 
             ps.setInt(1, id);
             boolean desactivado = ps.executeUpdate() > 0;
-            if (desactivado) JOptionPane.showMessageDialog(null, "Rostro desactivado correctamente.");
+            if (desactivado)
+            {
+                //Registo en auditoria
+                auditar("Seguridad", "DesactivarRegistroRostro",
+                        "Se desactivo el registro de rostro ID: " + id);
+                JOptionPane.showMessageDialog(null, "Rostro desactivado correctamente.");
+            }
             return desactivado;
         }
     }
@@ -88,6 +103,9 @@ public class RostroUsuarioDAO {
                 lista.add(mapRostroUsuario(rs));
             }
         }
+        //Registo en auditoria
+        auditar("Seguridad", "ListarRegistroRostro",
+                "Se listaron todos los registros de rostros" );
         return lista;
     }
 
@@ -99,7 +117,13 @@ public class RostroUsuarioDAO {
 
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapRostroUsuario(rs);
+                if (rs.next())
+                {
+                    //Registo en auditoria
+                    auditar("Seguridad", "ListarRegistroRostro",
+                            "Se listo el registro de rostro ID: " + id);
+                    return mapRostroUsuario(rs);
+                }
             }
         }
         return null;
@@ -117,6 +141,9 @@ public class RostroUsuarioDAO {
                 while (rs.next()) lista.add(mapRostroUsuario(rs));
             }
         }
+        //Registo en auditoria
+        auditar("Seguridad", "ListarRegistroRostro",
+                "Se listaron los registros para el usuario ID: " + idUsuario);
         return lista;
     }
 
