@@ -4,6 +4,8 @@ import app.dao.AuditoriaDAO;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
+import java.util.Map;
 
 public class AuditoriaForm
 {

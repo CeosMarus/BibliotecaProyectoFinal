@@ -158,6 +158,28 @@ public class AuditoriaDAO extends BaseDAO {
         return lista;
     }
 
+    public boolean existeModulo(String nombreModulo) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Auditoria WHERE modulo = ?";
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nombreModulo);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        }
+    }
+
+    public Integer obtenerIdUsuarioPorNombre(String nombreUsuario) throws SQLException {
+        String sql = "SELECT id FROM Usuario WHERE nombreUsuario = ?";
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nombreUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("id") : null;
+            }
+        }
+    }
+
     // 🔹 Mapeo de ResultSet a objeto Auditoria
     private Auditoria mapAuditoria(ResultSet rs) throws SQLException {
         return new Auditoria(
