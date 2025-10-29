@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UsuarioDAO {
+public class UsuarioDAO extends BaseDAO {
 
     /** Crear usuario: guarda el HASH en la columna 'password' */
     public int crearUsuario(String username, String plainPassword, String nombre, String rol, int estado) throws SQLException {
@@ -25,9 +25,26 @@ public class UsuarioDAO {
             ps.setInt(5, estado);
             ps.executeUpdate();
 
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                return rs.next() ? rs.getInt(1) : -1;
+            try (ResultSet rs = ps.getGeneratedKeys())
+            {
+                if(rs.next())
+                {
+                    int idGenerado = rs.getInt(1);
+
+                    //Registo en auditoria
+                    auditar("Usuarios", "CrearUsuario",
+                            "Se creo un nuevo usuario con username: " + username +
+                                    ", rol: " + rol +
+                                    ", ID generado: " + idGenerado);
+
+                    return idGenerado;
+                }
+
             }
+            catch (SQLException e) {
+                System.err.println("Error al insertar el usuario: " + e.getMessage());
+            }
+            return -1; // Si no se generó ID
         }
     }
 
@@ -43,7 +60,15 @@ public class UsuarioDAO {
             ps.setInt(4, u.getEstado());
             ps.setInt(5, u.getId());
 
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registo en auditoria
+                auditar("Usuarios", "ActualizarUsuario",
+                        "Se actualizo el usuario ID: " + u.getId() + ", username: " + u.getUsername());
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -54,7 +79,15 @@ public class UsuarioDAO {
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registo en auditoria
+                auditar("Usuarios", "DesactivarUsuario",
+                        "Se desactivo el usuario ID: " + id);
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -71,6 +104,9 @@ public class UsuarioDAO {
                 lista.add(mapUsuario(rs));
             }
         }
+        //Registo en auditoria
+        auditar("Usuarios", "ListarUsuario",
+                "Se listo los usuarios activos");
         return lista;
     }
     /** Listar únicamente usuarios con rol = 'Cliente' y estado = 1 */
@@ -92,6 +128,9 @@ public class UsuarioDAO {
                 ));
             }
         }
+        //Registo en auditoria
+        auditar("Usuarios", "ListarUsuario",
+                "Se listo los usuarios activos con rol Cliente");
         return lista;
     }
     /** Buscar usuarios por username */
@@ -109,6 +148,9 @@ public class UsuarioDAO {
                 }
             }
         }
+        //Registo en auditoria
+        auditar("Usuarios", "ListarUsuario",
+                "Se listo los usuarios activos con username: " + username);
         return lista;
     }
 
@@ -125,7 +167,6 @@ public class UsuarioDAO {
 
                 String hash = rs.getString("password");
                 if (!PasswordUtil.verify(plainPassword, hash)) return null;
-
                 return new Usuario(
                         rs.getInt("id"),
                         rs.getString("username"),
