@@ -12,13 +12,13 @@ public class CompraLibroDAO {
 
     public CompraLibroDAO() {
         try {
-            conn = Conexion.getConnection(); // ✅ Cambiar DBConnection por Conexion
+            conn = Conexion.getConnection();
         } catch (SQLException e) {
             System.err.println("❌ Error al obtener la conexión: " + e.getMessage());
         }
     }
 
-    // 🟢 Insertar nuevo registro
+    // Insertar nuevo registro
     public boolean insertar(CompraLibro compra) {
         String sql = "INSERT INTO CompraLibro (idSolicitud, proveedor, costoTotal, fechaRecepcion, estado) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -39,7 +39,7 @@ public class CompraLibroDAO {
         }
     }
 
-    // 🟡 Actualizar registro
+    // Actualizar registro
     public boolean actualizar(CompraLibro compra) {
         String sql = "UPDATE CompraLibro SET idSolicitud = ?, proveedor = ?, costoTotal = ?, fechaRecepcion = ?, estado = ? WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -61,7 +61,7 @@ public class CompraLibroDAO {
         }
     }
 
-    // 🟢 Listar registros activos
+    // Listar registros activos
     public List<CompraLibro> listarActivos() {
         List<CompraLibro> lista = new ArrayList<>();
         String sql = "SELECT * FROM CompraLibro WHERE estado = 1";
@@ -84,7 +84,7 @@ public class CompraLibroDAO {
         return lista;
     }
 
-    // 🟢 Obtener un registro por ID
+    // Obtener un registro por ID
     public CompraLibro obtenerPorId(int id) {
         String sql = "SELECT * FROM CompraLibro WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -107,7 +107,7 @@ public class CompraLibroDAO {
         return null;
     }
 
-    // 🟢 Eliminación lógica
+    // Eliminación lógica
     public boolean eliminarLogico(int id) {
         String sql = "UPDATE CompraLibro SET estado = 0 WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

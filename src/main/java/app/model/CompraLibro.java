@@ -11,10 +11,10 @@ public class CompraLibro {
     private Date fechaRecepcion;
     private int estado; // 1 = activo, 0 = desactivado
 
-    // 🟢 Constructor vacío
+    // Constructor vacío
     public CompraLibro() {}
 
-    // 🟢 Constructor completo
+    // Constructor completo
     public CompraLibro(int id, int idSolicitud, String proveedor, double costoTotal, Date fechaRecepcion, int estado) {
         this.id = id;
         this.idSolicitud = idSolicitud;
@@ -24,7 +24,7 @@ public class CompraLibro {
         this.estado = estado;
     }
 
-    // 🟢 Getters y Setters
+    // Getters y Setters
     public int getId() {
         return id;
     }
@@ -73,7 +73,7 @@ public class CompraLibro {
         this.estado = estado;
     }
 
-    // 🟢 Método para mostrar información básica (opcional)
+    // metodo para informacion basica de lacompra
     @Override
     public String toString() {
         return "CompraLibro{" +

@@ -11,32 +11,24 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class UsuariosForm {
-    //-----Atributos-----
-    //Panel Principal
+    //elementos utilizados
     public JPanel panelPrincipal;
-    //Cuadros de texto
     private JTextField txtUsername;
     private JTextField txtNombre;
-    //Cuadro de password
     private JPasswordField txtPassword;
     private JPasswordField txtConfirm;
-    //Combo Box
     private JComboBox<ComboItem> cboRol;
     private JComboBox<String> cboEstado;
-    //botones
     private JButton btnGuardar;
     private JButton btnActualizar;
     private JButton btnEliminar;
     private JButton btnCargar;
     private JButton btnLimpiar;
-    private JButton btnBuscarUsername; // Nuevo botón
-    //tablas
+    private JButton btnBuscarUsername;
+    private JButton btnSalir;
     private JTable tbUsuarios;
-    //Check box
     private JCheckBox chkMostrar;
 
-
-    //-----Metodos-----
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
     private final DefaultTableModel model = new DefaultTableModel(
             new Object[]{"ID", "Username", "Nombre", "Password", "Rol", "Estado"}, 0
@@ -44,7 +36,6 @@ public class UsuariosForm {
     private Integer selectedId = null;
     private char echoPass, echoConf;
 
-    //Vista Principal del formulario de usuarios
     public UsuariosForm() {
         panelPrincipal.setPreferredSize(new Dimension(900, 600));
         tbUsuarios.setModel(model);
@@ -53,19 +44,22 @@ public class UsuariosForm {
         cboEstado.addItem("1 - Activo");
         cboEstado.addItem("0 - Inactivo");
 
-        // show/hide pass
+        // Configuración de password visible/invisible
         echoPass = txtPassword.getEchoChar();
         echoConf = txtConfirm.getEchoChar();
         chkMostrar.addActionListener(e -> togglePasswordEcho());
 
+        // Cargar roles
         cargarRolesEnCombo();
 
+        // Eventos botones
         btnGuardar.addActionListener(e -> onGuardar());
         btnActualizar.addActionListener(e -> onActualizar());
-        btnCargar.addActionListener(e -> cargarTabla());
         btnEliminar.addActionListener(e -> onEliminar());
+        btnCargar.addActionListener(e -> cargarTabla());
         btnLimpiar.addActionListener(e -> limpiarFormulario());
-        btnBuscarUsername.addActionListener(e -> onBuscarPorUsername()); // Nuevo listener
+        btnBuscarUsername.addActionListener(e -> onBuscarPorUsername());
+        btnSalir.addActionListener(e -> onSalir()); // ✅ salir agregado
 
         tbUsuarios.getSelectionModel().addListSelectionListener(e -> {
             if (e.getValueIsAdjusting()) return;
@@ -88,16 +82,18 @@ public class UsuariosForm {
             cboEstado.setSelectedIndex("Activo".equalsIgnoreCase(estadoTxt) ? 0 : 1);
         });
 
-        //cargarTabla();
+        // Cargar tabla inicial
+        cargarTabla();
     }
 
-    //Se cargan los roles de los usuarios
+    /* Carga los roles al momento de la seleccion y creacion*/
     private void cargarRolesEnCombo() {
         try {
             cboRol.removeAllItems();
             cboRol.addItem(new ComboItem(1, "Admin"));
             cboRol.addItem(new ComboItem(2, "Bibliotecario"));
             cboRol.addItem(new ComboItem(3, "Financiero"));
+            cboRol.addItem(new ComboItem(4, "Cliente"));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -115,34 +111,33 @@ public class UsuariosForm {
 
     private void togglePasswordEcho() {
         boolean show = chkMostrar.isSelected();
-        txtPassword.setEchoChar(show ? (char)0 : echoPass);
-        txtConfirm.setEchoChar(show ? (char)0 : echoConf);
+        txtPassword.setEchoChar(show ? (char) 0 : echoPass);
+        txtConfirm.setEchoChar(show ? (char) 0 : echoConf);
     }
 
-    //Se obtienen los datos para guardar un usuario
+    /* Crear nuevo usuario */
     private void onGuardar() {
         String username = txtUsername.getText().trim();
         String nombre = txtNombre.getText().trim();
-        //String password = txtPassword.getText().trim();
-        String pass     = new String(txtPassword.getPassword());
-        String confirm  = new String(txtConfirm.getPassword());
+        String pass = new String(txtPassword.getPassword());
+        String confirm = new String(txtConfirm.getPassword());
         ComboItem rolItem = (ComboItem) cboRol.getSelectedItem();
         int estado = (cboEstado.getSelectedIndex() == 0) ? 1 : 0;
 
         if (username.length() < 3) {
-            JOptionPane.showMessageDialog(panelPrincipal, "Favor ingresar minimo 3 Caracteres", "Error en Username", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(panelPrincipal, "El username debe tener al menos 3 caracteres.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        if (pass.length() < 6){
-            JOptionPane.showMessageDialog(panelPrincipal, "Favor ingresar una contraseña de al menos 6 caracteres", "Advertencia en Password", JOptionPane.ERROR_MESSAGE);
+        if (pass.length() < 6) {
+            JOptionPane.showMessageDialog(panelPrincipal, "La contraseña debe tener al menos 6 caracteres.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        if (!pass.equals(confirm)){
-            JOptionPane.showMessageDialog(panelPrincipal, "Las contraseñas no coinciden", "Advertencia en Password", JOptionPane.ERROR_MESSAGE);
+        if (!pass.equals(confirm)) {
+            JOptionPane.showMessageDialog(panelPrincipal, "Las contraseñas no coinciden.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        if (username.isEmpty() || nombre.isEmpty() || pass.isEmpty() || confirm.isEmpty() ||rolItem == null) {
-            JOptionPane.showMessageDialog(panelPrincipal, "Todos los campos son obligatorios.", "Error de validación", JOptionPane.ERROR_MESSAGE);
+        if (username.isEmpty() || nombre.isEmpty() || rolItem == null) {
+            JOptionPane.showMessageDialog(panelPrincipal, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -153,13 +148,14 @@ public class UsuariosForm {
             JOptionPane.showMessageDialog(panelPrincipal, "Usuario guardado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(panelPrincipal, "Error al guardar el usuario: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(panelPrincipal, "Error al guardar usuario: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    /** Actualizar usuario */
     private void onActualizar() {
         if (selectedId == null) {
-            JOptionPane.showMessageDialog(panelPrincipal, "Seleccione un usuario de la tabla para actualizar.", "Error de selección", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(panelPrincipal, "Seleccione un usuario de la tabla para actualizar.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -169,13 +165,13 @@ public class UsuariosForm {
         int estado = (cboEstado.getSelectedIndex() == 0) ? 1 : 0;
 
         if (username.isEmpty() || nombre.isEmpty() || rolItem == null) {
-            JOptionPane.showMessageDialog(panelPrincipal, "Los campos username, nombre y rol son obligatorios.", "Error de validación", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(panelPrincipal, "Los campos username, nombre y rol son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
-            Usuario usuarioActualizado = new Usuario(selectedId, username, nombre, null, rolItem.getLabel(), estado);
-            boolean ok = usuarioDAO.actualizar(usuarioActualizado);
+            Usuario u = new Usuario(selectedId, username, nombre, null, rolItem.getLabel(), estado);
+            boolean ok = usuarioDAO.actualizar(u);
             if (ok) {
                 cargarTabla();
                 seleccionarFilaPorId(selectedId);
@@ -183,34 +179,33 @@ public class UsuariosForm {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(panelPrincipal, "Error al actualizar el usuario: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(panelPrincipal, "Error al actualizar usuario: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    // Elimina un Usuario (baja lógica)
+    /** Eliminación lógica */
     private void onEliminar() {
         if (selectedId == null) {
             JOptionPane.showMessageDialog(panelPrincipal, "Seleccione un usuario para eliminar.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(panelPrincipal, "¿Está seguro que desea eliminar este usuario?", "Confirmar eliminación", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(panelPrincipal, "¿Desea desactivar este usuario?", "Confirmar eliminación", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 boolean ok = usuarioDAO.eliminar(selectedId);
                 if (ok) {
                     cargarTabla();
                     limpiarFormulario();
-                    JOptionPane.showMessageDialog(panelPrincipal, "Usuario eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(panelPrincipal, "Usuario desactivado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 }
             } catch (SQLException ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(panelPrincipal, "Error al eliminar el usuario: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(panelPrincipal, "Error al eliminar usuario: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
-    // Método para buscar un usuario por su nombre de usuario
     private void onBuscarPorUsername() {
         String username = txtUsername.getText().trim();
         if (username.isEmpty()) {
@@ -223,15 +218,14 @@ public class UsuariosForm {
             List<Usuario> usuarios = usuarioDAO.buscarPorUsername(username);
             model.setRowCount(0);
             if (usuarios.isEmpty()) {
-                JOptionPane.showMessageDialog(panelPrincipal, "No se encontraron usuarios con ese nombre de usuario.", "No Encontrado", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(panelPrincipal, "No se encontraron usuarios con ese nombre.", "Sin resultados", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 for (Usuario u : usuarios) {
                     model.addRow(new Object[]{
                             u.getId(),
                             u.getUsername(),
                             u.getNombre(),
-                            "********", // Ocultamos la contraseña
-                            "********", // Ocultamos la contraseña
+                            "",
                             u.getRol(),
                             u.getEstado() == 1 ? "Activo" : "Inactivo"
                     });
@@ -239,7 +233,7 @@ public class UsuariosForm {
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(panelPrincipal, "Error al buscar usuarios: " + ex.getMessage(), "Error de Búsqueda", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(panelPrincipal, "Error al buscar usuarios: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -252,15 +246,14 @@ public class UsuariosForm {
                         u.getId(),
                         u.getUsername(),
                         u.getNombre(),
-                        "********", // Ocultamos la contraseña por seguridad
-                       // "********", // Ocultamos la contraseña por seguridad
+                        "",
                         u.getRol(),
                         u.getEstado() == 1 ? "Activo" : "Inactivo"
                 });
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(panelPrincipal, "Error al cargar la tabla de usuarios.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(panelPrincipal, "Error al cargar usuarios.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -286,6 +279,14 @@ public class UsuariosForm {
         }
     }
 
+    /* Salir */
+    private void onSalir() {
+        Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+        if (window != null) {
+            window.dispose(); // Cierra solo esta ventana
+        }
+    }
+//Main para pruebas independientes
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame f = new JFrame("Gestión de Usuarios");

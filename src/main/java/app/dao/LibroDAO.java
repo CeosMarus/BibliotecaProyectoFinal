@@ -109,4 +109,31 @@ public class LibroDAO {
         }
         return lista;
     }
+
+    // Listar libros activos
+    public List<Libro> listar() {
+        List<Libro> lista = new ArrayList<>();
+        String sql = "SELECT id, titulo, isbn, anio, idAutor, idCategoria, estado FROM Libro WHERE estado = 1 ORDER BY titulo ASC";
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Libro libro = new Libro();
+                libro.setId(rs.getInt("id"));
+                libro.setTitulo(rs.getString("titulo"));
+                libro.setIsbn(rs.getString("isbn"));
+                libro.setAnio(rs.getInt("anio"));
+                libro.setIdAutor(rs.getInt("idAutor"));
+                libro.setIdCategoria(rs.getInt("idCategoria"));
+                libro.setEstado(rs.getInt("estado"));
+                lista.add(libro);
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error al listar libros activos: " + e.getMessage());
+        }
+        return lista;
+    }
 }

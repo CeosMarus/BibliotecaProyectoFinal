@@ -23,10 +23,14 @@ public class Usuario {
         this(id, username, nombre, null, rol, estado); // Llama al constructor principal con password = null
     }
 
+    public String toString(){
+        return nombre + "("+ username + ")";
+    }
+
     public Integer getId() { return id; }
     public String getUsername() { return username; }
     public String getNombre() { return nombre; }
-    public String getPassword() { return password; } // Agregado
+    public String getPassword() { return password; }
     public String getRol() { return rol; }
     public int getEstado() { return estado; }
 }

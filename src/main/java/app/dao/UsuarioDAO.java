@@ -73,7 +73,27 @@ public class UsuarioDAO {
         }
         return lista;
     }
+    /** Listar únicamente usuarios con rol = 'Cliente' y estado = 1 */
+    public List<Usuario> listarClientes() throws SQLException {
+        String sql = "SELECT id, username, nombre, password, rol, estado FROM usuario WHERE estado = 1 AND rol = 'Cliente' ORDER BY nombre ASC";
+        List<Usuario> lista = new ArrayList<>();
 
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(new Usuario(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getString("nombre"),
+                        rs.getString("rol"),
+                        rs.getInt("estado")
+                ));
+            }
+        }
+        return lista;
+    }
     /** Buscar usuarios por username */
     public List<Usuario> buscarPorUsername(String username) throws SQLException {
         String sql = "SELECT id, username, nombre, password, rol, estado FROM usuario WHERE username LIKE ? AND estado=1";
