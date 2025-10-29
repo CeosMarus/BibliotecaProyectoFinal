@@ -58,23 +58,30 @@ public class AuditoriaDAO extends BaseDAO {
     }
 
     // 🔹 LISTAR POR MÓDULO
-    public List<Auditoria> listarPorModulo(String modulo) throws SQLException {
-        List<Auditoria> lista = new ArrayList<>();
-        String sql = "SELECT id, fechaHora, idUsuario, modulo, accion, detalle FROM Auditoria WHERE modulo = ? ORDER BY fechaHora DESC";
+    public List<Map<String, Object>> listarPorModulo(String modulo) throws SQLException {
+        String sql = """
+        SELECT A.id, A.fechaHora, A.modulo, A.accion, A.detalle,
+               U.id AS idUsuario, U.nombreUsuario, U.rol
+        FROM Auditoria A
+        INNER JOIN Usuario U ON A.idUsuario = U.id
+        WHERE A.modulo = ?
+        ORDER BY A.fechaHora DESC
+    """;
+
+        List<Map<String, Object>> lista = new ArrayList<>();
 
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, modulo);
-
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    lista.add(mapAuditoria(rs));
+                    lista.add(mapAuditoriaConUsuario(rs));
                 }
             }
 
-            // Registrar la acción en Auditoría
-            auditar("Auditoria", "ListarAuditoria",
+            // Registrar accion en auditoria
+            auditar("Auditoria", "ListarPorModulo",
                     "Se listaron los registros de auditoría del módulo: " + modulo);
 
         } catch (SQLException e) {
@@ -86,29 +93,31 @@ public class AuditoriaDAO extends BaseDAO {
     }
 
     // 🔹 LISTAR AUDITORÍAS POR USUARIO
-    public List<Auditoria> listarPorUsuario(int idUsuario) throws SQLException {
-        List<Auditoria> lista = new ArrayList<>();
+    public List<Map<String, Object>> listarPorUsuario(int idUsuario) throws SQLException {
         String sql = """
-            SELECT id, fechaHora, idUsuario, modulo, accion, detalle
-            FROM Auditoria
-            WHERE idUsuario = ?
-            ORDER BY fechaHora DESC
-            """;
+        SELECT A.id, A.fechaHora, A.modulo, A.accion, A.detalle,
+               U.id AS idUsuario, U.nombreUsuario, U.rol
+        FROM Auditoria A
+        INNER JOIN Usuario U ON A.idUsuario = U.id
+        WHERE U.id = ?
+        ORDER BY A.fechaHora DESC
+    """;
+
+        List<Map<String, Object>> lista = new ArrayList<>();
 
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, idUsuario);
-
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    lista.add(mapAuditoria(rs));
+                    lista.add(mapAuditoriaConUsuario(rs));
                 }
             }
 
-            //Registrar en Auditoria
-            auditar("Auditoria", "ListarAuditoria",
-                    "Se listaron los registros de auditoría del usuario con ID: " + idUsuario);
+            // Registrar acción en auditoría
+            auditar("Auditoria", "ListarPorUsuario",
+                    "Se listaron los registros de auditoría del usuario ID: " + idUsuario);
 
         } catch (SQLException e) {
             System.err.println("Error al listar auditorías por usuario: " + e.getMessage());
@@ -129,25 +138,23 @@ public class AuditoriaDAO extends BaseDAO {
     """;
 
         List<Map<String, Object>> lista = new ArrayList<>();
+
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                Map<String, Object> fila = new HashMap<>();
-                fila.put("id", rs.getInt("id"));
-                fila.put("fechaHora", rs.getTimestamp("fechaHora"));
-                fila.put("modulo", rs.getString("modulo"));
-                fila.put("accion", rs.getString("accion"));
-                fila.put("detalle", rs.getString("detalle"));
-                fila.put("idUsuario", rs.getInt("idUsuario"));
-                fila.put("usuario", rs.getString("nombreUsuario"));
-                fila.put("rol", rs.getString("rol"));
-                lista.add(fila);
+                lista.add(mapAuditoriaConUsuario(rs)); // 👈 aquí usamos el map
             }
+
+            // Registrar la acción en auditoría
+            auditar("Auditoria", "ListarAuditoria", "Se listaron todas las auditorías realizadas");
+
+        } catch (SQLException e) {
+            System.err.println("Error al listar auditorías con usuario: " + e.getMessage());
+            throw e;
         }
-        //Registar la accion en Auditoria
-        auditar("Auditoria", "ListarAuditoria", "Se listaron todas las auditorias realizadas");
+
         return lista;
     }
 
@@ -161,5 +168,18 @@ public class AuditoriaDAO extends BaseDAO {
                 rs.getString("accion"),
                 rs.getString("detalle")
         );
+    }
+    // 🔹 Mapeo de ResultSet a Map con datos de Auditoría y Usuario
+    private Map<String, Object> mapAuditoriaConUsuario(ResultSet rs) throws SQLException {
+        Map<String, Object> fila = new HashMap<>();
+        fila.put("id", rs.getInt("id"));
+        fila.put("fechaHora", rs.getTimestamp("fechaHora"));
+        fila.put("modulo", rs.getString("modulo"));
+        fila.put("accion", rs.getString("accion"));
+        fila.put("detalle", rs.getString("detalle"));
+        fila.put("idUsuario", rs.getInt("idUsuario"));
+        fila.put("usuario", rs.getString("nombreUsuario"));
+        fila.put("rol", rs.getString("rol"));
+        return fila;
     }
 }
