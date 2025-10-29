@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MultaDAO {
+public class MultaDAO extends BaseDAO {
 
     // Instancia del DAO de movimientos para registrar los ingresos en caja
     private final CajaMovimientoDAO movimientoDAO = new CajaMovimientoDAO();
@@ -71,6 +71,13 @@ public class MultaDAO {
                     multa.setId(idGenerado);
                 }
             }
+            //Registrar acción en Auditoría
+            if (idGenerado > 0) {
+                auditar("Financiero", "InsertarMulta",
+                        "Se registró una nueva multa con ID: " + idGenerado +
+                                ", Cliente ID: " + multa.getIdCliente() +
+                                ", Monto: Q" + multa.getMonto());
+            }
         }
 
         // Lógica de Acumulación: Registrar Movimiento en Caja si la multa fue pagada al momento de crearla
@@ -88,12 +95,14 @@ public class MultaDAO {
             // Esto utiliza el método insertar del CajaMovimientoDAO.
             try {
                 movimientoDAO.insertar(movimiento);
+                // Registrar en auditoría también el movimiento asociado
+                auditar("Financiero", "RegistrarMovimiento",
+                        "Se registró movimiento de caja por pago de multa ID: " + idGenerado);
             } catch (SQLException e) {
                 // Si falla el registro en Caja, se registra en log, pero la multa ya está insertada.
                 Logger.getLogger(MultaDAO.class.getName()).log(Level.SEVERE, "Error al registrar movimiento de caja para Multa ID: " + idGenerado, e);
             }
         }
-
         return idGenerado;
     }
     // --------------------------- ACTUALIZAR ----------------------------------
@@ -117,6 +126,12 @@ public class MultaDAO {
             ps.setString(7, multa.getObservaciones());
             ps.setInt(8, multa.getId());
 
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                // Registrar en auditoria
+                auditar("Financiero", "ActualizarMulta","Se actualizo la multa ID: " + multa.getId());
+                return true;
+            }
             return ps.executeUpdate() > 0;
         }
     }
@@ -133,6 +148,12 @@ public class MultaDAO {
 
         // 3. Registrar el movimiento en caja (si se actualizó correctamente)
         if (multaActualizada) {
+            //Registo en auditoria
+            auditar("Financiero", "ActualizarPagoMulta",
+                    "Se registró el pago de la multa ID: " + multa.getId() +
+                            ", Monto: Q" + multa.getMonto() +
+                            ", Usuario ID: " + idUsuario);
+
             Date ahora = new Date();
             CajaMovimiento movimiento = new CajaMovimiento(
                     ahora,
@@ -145,6 +166,11 @@ public class MultaDAO {
             );
             try {
                 movimientoDAO.insertar(movimiento);
+                // Registrar en auditoría también el movimiento asociado
+                auditar("Financiero", "RegistrarMovimiento",
+                        "Se registró movimiento de caja por pago de multa ID: " + multa.getId() +
+                                ", Monto: Q" + multa.getMonto() +
+                                ", Usuario ID: " + idUsuario);
             } catch (SQLException e) {
                 Logger.getLogger(MultaDAO.class.getName()).log(Level.SEVERE, "Error al registrar cobro en caja para Multa ID: " + multa.getId(), e);
             }
@@ -161,7 +187,13 @@ public class MultaDAO {
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Financiero", "DesactivarMulta", "Se desactivo la multa con ID: " + id);
+                return  true;
+            }
+            return false;
         }
     }
     // --------------------------- BUSCAR POR ID -------------------------------
@@ -172,7 +204,12 @@ public class MultaDAO {
 
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapMulta(rs);
+                if (rs.next())
+                {
+                    //Registar la accion en Auditoria
+                    auditar("Financiero", "ListarMulta", "Se listo la multa con ID: " + id);
+                    return mapMulta(rs);
+                }
             }
         }
         return null;
@@ -198,6 +235,8 @@ public class MultaDAO {
                 }
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Financiero", "ListarMulta", "Se listo las multas del cliente: " + nombre);
         return lista;
     }
     // --------------------------- LISTAR (BASE) -------------------------------
@@ -211,6 +250,8 @@ public class MultaDAO {
 
             while (rs.next()) lista.add(mapMulta(rs));
         }
+        //Registar la accion en Auditoria
+        auditar("Financiero", "ListarMulta", "Se listo todas las multas");
         return lista;
     }
     // --------------------------- LISTAR PENDIENTES ---------------------------
@@ -231,6 +272,8 @@ public class MultaDAO {
                 lista.add(mapMultaDetalle(rs)); // Usa el mapeador de detalle
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Financiero", "ListarMulta", "Se listo las multas pendientes");
         return lista;
     }
     // --------------------------- LISTAR DETALLES (NUEVO) ---------------------
@@ -247,6 +290,8 @@ public class MultaDAO {
                 lista.add(mapMultaDetalle(rs));
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Financiero", "ListarMulta", "Se listo las multas con detalles");
         return lista;
     }
     // --------------------------- MAPPERS -------------------------------------

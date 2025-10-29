@@ -7,7 +7,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EjemplarDAO {
+public class EjemplarDAO extends BaseDAO {
 
     // 🔹 INSERTAR nuevo ejemplar
     public int insertar(Ejemplar e) throws SQLException {
@@ -36,6 +36,8 @@ public class EjemplarDAO {
                 if (rs.next()) {
                     int id = rs.getInt(1);
                     e.setId(id);
+                    //Registar la accion en Auditoria
+                    auditar("Catalogo-Ejemplar", "NuevoEjemplar", "Se creo el ejemplar" + e.getCodigoInventario());
                     return id;
                 }
             }
@@ -66,7 +68,13 @@ public class EjemplarDAO {
             ps.setInt(9, e.getEstado()); // <-- cambio a int
             ps.setInt(10, e.getId());
 
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Catalogo-Ejemplar", "ActualizarEjemplar", "Se actualizo el ejemplar" + e.getCodigoInventario());
+                return  true;
+            }
+            return false;
         }
     }
 
@@ -76,7 +84,13 @@ public class EjemplarDAO {
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Catalogo-Ejemplar", "DesactivarEjemplar", "Se deshabilito el ejemplar ID:" + id);
+                return true;
+            }
+            return false;
         }
     }
 
@@ -86,7 +100,13 @@ public class EjemplarDAO {
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registar la accion en Auditoria
+                auditar("Catalogo-Ejemplar", "ActivarEjemplar", "Se habilito el ejemplar ID:" + id);
+                return true;
+            }
+            return false;
         }
     }
 
@@ -109,6 +129,8 @@ public class EjemplarDAO {
                 lista.add(mapEjemplar(rs));
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Catalogo-Ejemplar", "ListarEjemplar", "Se listaron todos los ejemplares");
         return lista;
     }
 
@@ -121,6 +143,8 @@ public class EjemplarDAO {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    //Registar la accion en Auditoria
+                    auditar("Catalogo-Ejemplar", "ListarEjemplar", "Se listo el ejemplar con ID: " + id);
                     return mapEjemplar(rs);
                 }
             }
@@ -148,6 +172,8 @@ public class EjemplarDAO {
                 }
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Catalogo-Ejemplar", "ListarEjemplar", "Se busco el ejemplar: " + codigoInventario);
         return lista;
     }
 
@@ -173,6 +199,8 @@ public class EjemplarDAO {
                 lista.add(ej);
             }
         }
+        //Registar la accion en Auditoria
+        auditar("Catalogo-Ejemplar", "ListarEjemplar", "Se listaron los ejemplares con titulos");
         return lista;
     }
 

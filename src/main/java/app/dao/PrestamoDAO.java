@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 
-public class PrestamoDAO {
+public class PrestamoDAO extends BaseDAO {
 
     // 🔹 INSERTAR
     public int insertar(Prestamo p) throws SQLException {
@@ -33,6 +33,10 @@ public class PrestamoDAO {
                 if (rs.next()) {
                     int id = rs.getInt(1);
                     p.setId(id);
+                    //Registo en auditoria
+                    auditar("Prestamos", "PrestamoEjemplar",
+                            "Se realizo el prestamo del ejemplar ID: " + p.getIdEjemplar() +
+                                    ", Al cliente" + p.getIdCliente());
                     return id;
                 }
             }
@@ -47,7 +51,14 @@ public class PrestamoDAO {
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registo en auditoria
+                auditar("Prestamos", "Devolucion",
+                        "Se registro la devolucion del prestamo ID: " + id);
+                return true;
+            }
+            return false;
         }
     }
 
@@ -61,7 +72,14 @@ public class PrestamoDAO {
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                //Registo en auditoria
+                auditar("Prestamos", "DesactivarPrestamo",
+                        "Se descativo el prestamo ID: " + id);
+                return true;
+            }
+            return false;
         }
     }
 
@@ -73,7 +91,13 @@ public class PrestamoDAO {
 
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapPrestamo(rs);
+                if (rs.next())
+                {
+                    //Registo en auditoria
+                    auditar("Prestamos", "ListarPrestamos",
+                            "Se listo el prestamo con el ID: " + id);
+                    return mapPrestamo(rs);
+                }
             }
         }
         return null;
@@ -89,6 +113,9 @@ public class PrestamoDAO {
 
             while (rs.next()) lista.add(mapPrestamo(rs));
         }
+        //Registo en auditoria
+        auditar("Prestamos", "ListarPrestamos",
+                "Se listo todos los prestamos registrados");
         return lista;
     }
 
@@ -102,6 +129,9 @@ public class PrestamoDAO {
 
             while (rs.next()) lista.add(mapPrestamo(rs));
         }
+        //Registo en auditoria
+        auditar("Prestamos", "ListarPrestamos",
+                "Se listaron los prestamos activos");
         return lista;
     }
 
@@ -117,6 +147,9 @@ public class PrestamoDAO {
                 while (rs.next()) lista.add(mapPrestamo(rs));
             }
         }
+        //Registo en auditoria
+        auditar("Prestamos", "ListarPrestamos",
+                "Se listaron los prestamos del cliente con ID: " + idCliente);
         return lista;
     }
 
@@ -132,6 +165,9 @@ public class PrestamoDAO {
                 while (rs.next()) lista.add(mapPrestamo(rs));
             }
         }
+        //Registo en auditoria
+        auditar("Prestamos", "ListarPrestamos",
+                "Se listaron los prestamos del ejemplar con ID: " + idEjemplar);
         return lista;
     }
 
@@ -143,7 +179,13 @@ public class PrestamoDAO {
 
             ps.setInt(1, idEjemplar);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt("total") > 0;
+                if (rs.next())
+                {
+                    //Registo en auditoria
+                    auditar("Prestamos", "VerificarDisponibilidad",
+                            "Se verifico si el ejmplar con ID: " + idEjemplar + "Cuenta con disponibilidad");
+                    return rs.getInt("total") > 0;
+                }
             }
         }
         return false;
