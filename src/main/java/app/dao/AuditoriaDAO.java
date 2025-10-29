@@ -57,6 +57,67 @@ public class AuditoriaDAO extends BaseDAO {
         return null;
     }
 
+    // 🔹 LISTAR POR MÓDULO
+    public List<Auditoria> listarPorModulo(String modulo) throws SQLException {
+        List<Auditoria> lista = new ArrayList<>();
+        String sql = "SELECT id, fechaHora, idUsuario, modulo, accion, detalle FROM Auditoria WHERE modulo = ? ORDER BY fechaHora DESC";
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, modulo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapAuditoria(rs));
+                }
+            }
+
+            // Registrar la acción en Auditoría
+            auditar("Auditoria", "ListarAuditoria",
+                    "Se listaron los registros de auditoría del módulo: " + modulo);
+
+        } catch (SQLException e) {
+            System.err.println("Error al listar auditorías por módulo: " + e.getMessage());
+            throw e;
+        }
+
+        return lista;
+    }
+
+    // 🔹 LISTAR AUDITORÍAS POR USUARIO
+    public List<Auditoria> listarPorUsuario(int idUsuario) throws SQLException {
+        List<Auditoria> lista = new ArrayList<>();
+        String sql = """
+            SELECT id, fechaHora, idUsuario, modulo, accion, detalle
+            FROM Auditoria
+            WHERE idUsuario = ?
+            ORDER BY fechaHora DESC
+            """;
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, idUsuario);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapAuditoria(rs));
+                }
+            }
+
+            //Registrar en Auditoria
+            auditar("Auditoria", "ListarAuditoria",
+                    "Se listaron los registros de auditoría del usuario con ID: " + idUsuario);
+
+        } catch (SQLException e) {
+            System.err.println("Error al listar auditorías por usuario: " + e.getMessage());
+            throw e;
+        }
+
+        return lista;
+    }
+
     // 🔹 LISTAR TODOS LOS REGISTROS
     public List<Map<String, Object>> listarConUsuario() throws SQLException {
         String sql = """
