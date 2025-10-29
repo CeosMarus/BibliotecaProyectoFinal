@@ -9,7 +9,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LibroDAO {
+public class LibroDAO extends BaseDAO {
 
     // Insertar libro
     public boolean agregarLibro(Libro libro) {
@@ -29,12 +29,20 @@ public class LibroDAO {
             ps.setInt(5, libro.getIdCategoria());
             ps.setInt(6, libro.getEstado());
 
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0)
+            {
+                //Registo en auditoria
+                auditar("Catalogo-Libro", "CrearLibro",
+                        "Se creo un nuevo libro ID: " + libro.getId() + ", con titulo: " + libro.getTitulo() );
+                return true;
+            }
 
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al agregar el libro: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     // Actualizar libro
@@ -56,12 +64,20 @@ public class LibroDAO {
             ps.setInt(6, libro.getEstado());
             ps.setInt(7, libro.getId());
 
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0)
+            {
+                //Registo en auditoria
+                auditar("Catalogo-Libro", "ActualizarLibro",
+                        "Se actualizo libro ID: " + libro.getId() + ", con titulo: " + libro.getTitulo() );
+                return true;
+            }
 
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al actualizar el libro: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     // Desactivar libro
@@ -70,11 +86,19 @@ public class LibroDAO {
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0)
+            {
+                //Registo en auditoria
+                auditar("Catalogo-Libro", "DesactivarLibro",
+                        "Se desactivo libro ID: " + id );
+                return true;
+            }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al desactivar: " + e.getMessage());
             return false;
         }
+        return false;
     }
 
     // Listar todos los libros (con Autor y Categoria)
@@ -107,6 +131,9 @@ public class LibroDAO {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al listar libros: " + e.getMessage());
         }
+        //Registo en auditoria
+        auditar("Catalogo-Libro", "ListarLibro",
+                "Se listaron todos los libros");
         return lista;
     }
 
@@ -134,6 +161,9 @@ public class LibroDAO {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al listar libros activos: " + e.getMessage());
         }
+        //Registo en auditoria
+        auditar("Catalogo-Libro", "ListarLibro",
+                "Se listaron todos los libros activos" );
         return lista;
     }
 }
