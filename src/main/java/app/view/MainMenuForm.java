@@ -86,6 +86,7 @@ public class MainMenuForm {
         //if (btnLibros  != null)  btnLibros.addActionListener(e -> abrirLibros());
         if (btnCaja  != null)  btnCaja.addActionListener(e -> abrirAperturaCaja());
         if (btnUsuario != null) btnUsuario.addActionListener(e -> abrirUsuario());
+        if (btnAuditoria != null) btnAuditoria.addActionListener(e -> abrirAuditoria());
         // metódo para cerrar sesión
         if(btnCerrarSesion != null) btnCerrarSesion.addActionListener(e -> {
             Sesion.cerrarSesion();
@@ -122,6 +123,13 @@ public class MainMenuForm {
         //if (!Sesion.hasRole("ADMIN")) return;
         JFrame f = new JFrame("Registro de Usuario");
         f.setContentPane(new UsuariosForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+    private void abrirAuditoria() {
+        //if (!Sesion.hasRole("ADMIN")) return;
+        JFrame f = new JFrame("Auditoria");
+        f.setContentPane(new AuditoriaForm().panelPrincipal);
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
     }

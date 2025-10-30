@@ -178,6 +178,26 @@ public class UsuarioDAO extends BaseDAO {
         }
     }
 
+    //Devolver username para ComboBox
+    /**
+     * Listar todos los usernames activos (estado = 1)
+     */
+    public List<String> listarUsernamesActivos() throws SQLException {
+        String sql = "SELECT username FROM Usuario WHERE estado = 1 ORDER BY username ASC";
+        List<String> usernames = new ArrayList<>();
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                usernames.add(rs.getString("username"));
+            }
+        }
+
+        return usernames;
+    }
+
     /** Mapear ResultSet a Usuario */
     private Usuario mapUsuario(ResultSet rs) throws SQLException {
         return new Usuario(
