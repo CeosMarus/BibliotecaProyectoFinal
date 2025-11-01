@@ -10,7 +10,7 @@ import javax.swing.JOptionPane;
 
 public class PrestamoDAO extends BaseDAO {
 
-    // 🔹 INSERTAR
+    // INSERTAR
     public int insertar(Prestamo p) throws SQLException {
         if (p == null) throw new SQLException("Prestamo no puede ser nulo.");
         if (isEjemplarPrestado(p.getIdEjemplar())) {
@@ -44,7 +44,7 @@ public class PrestamoDAO extends BaseDAO {
         return -1;
     }
 
-    // 🔹 DEVOLVER (Actualización de estado y fechaDevolucion)
+    // DEVOLVER (Actualización de estado y fechaDevolucion)
     public boolean devolver(int id) throws SQLException {
         String sql = "UPDATE Prestamo SET estado=0, fechaDevolucion=GETDATE() WHERE id=?";
         try (Connection con = Conexion.getConnection();
@@ -62,7 +62,7 @@ public class PrestamoDAO extends BaseDAO {
         }
     }
 
-    // 🔹 ELIMINACIÓN LÓGICA
+    //ELIMINACIÓN LÓGICA
     public boolean eliminar(int id) throws SQLException {
         int confirm = JOptionPane.showConfirmDialog(null, "¿Desea desactivar este préstamo?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return false;
@@ -83,7 +83,7 @@ public class PrestamoDAO extends BaseDAO {
         }
     }
 
-    // 🔹 BUSCAR POR ID
+    //BUSCAR POR ID
     public Prestamo buscarPorId(int id) throws SQLException {
         String sql = "SELECT * FROM Prestamo WHERE id=?";
         try (Connection con = Conexion.getConnection();
@@ -103,7 +103,7 @@ public class PrestamoDAO extends BaseDAO {
         return null;
     }
 
-    // 🔹 LISTAR TODOS
+    // LISTAR TODOS
     public List<Prestamo> listar() throws SQLException {
         String sql = "SELECT * FROM Prestamo ORDER BY id DESC";
         List<Prestamo> lista = new ArrayList<>();
@@ -119,7 +119,7 @@ public class PrestamoDAO extends BaseDAO {
         return lista;
     }
 
-    // 🔹 LISTAR SOLO ACTIVOS
+    // Muestra solo clientes activos
     public List<Prestamo> listarActivos() throws SQLException {
         String sql = "SELECT * FROM Prestamo WHERE estado=1 ORDER BY id DESC";
         List<Prestamo> lista = new ArrayList<>();
@@ -135,7 +135,7 @@ public class PrestamoDAO extends BaseDAO {
         return lista;
     }
 
-    // 🔹 LISTAR POR CLIENTE
+    // listar por clientes
     public List<Prestamo> listarPorCliente(int idCliente) throws SQLException {
         String sql = "SELECT * FROM Prestamo WHERE idCliente=? AND estado=1 ORDER BY id DESC";
         List<Prestamo> lista = new ArrayList<>();
@@ -153,7 +153,7 @@ public class PrestamoDAO extends BaseDAO {
         return lista;
     }
 
-    // 🔹 LISTAR POR EJEMPLAR
+    // listar ejemplares
     public List<Prestamo> listarPorEjemplar(int idEjemplar) throws SQLException {
         String sql = "SELECT * FROM Prestamo WHERE idEjemplar=? AND estado=1 ORDER BY id DESC";
         List<Prestamo> lista = new ArrayList<>();
@@ -171,7 +171,7 @@ public class PrestamoDAO extends BaseDAO {
         return lista;
     }
 
-    // 🔹 COMPROBAR SI EL EJEMPLAR YA ESTÁ PRESTADO
+    //Comprobar si el libro ejemplar esta prestado
     public boolean isEjemplarPrestado(int idEjemplar) throws SQLException {
         String sql = "SELECT COUNT(*) AS total FROM Prestamo WHERE idEjemplar=? AND estado=1";
         try (Connection con = Conexion.getConnection();
@@ -190,8 +190,44 @@ public class PrestamoDAO extends BaseDAO {
         }
         return false;
     }
+    // Listar préstamos del cliente con datos descriptivos
+    public List<Object[]> listarPrestamosClienteDetalle(int idCliente) throws SQLException {
+        String sql = "SELECT P.id, L.titulo, A.nombre AS autor, E.codigoInventario, " +
+                "P.fechaPrestamo, P.fechaVencimiento, P.fechaDevolucion, " +
+                "CASE WHEN P.estado = 1 THEN 'Activo' ELSE 'Devuelto' END AS estado " +
+                "FROM Prestamo P " +
+                "JOIN Ejemplar E ON P.idEjemplar = E.id " +
+                "JOIN Libro L ON E.idLibro = L.id " +
+                "JOIN Autor A ON L.idAutor = A.id " +
+                "WHERE P.idCliente = ? " +
+                "ORDER BY P.fechaPrestamo DESC";
 
-    // 🔹 MAPEO DE RESULTSET A PRESTAMO
+        List<Object[]> lista = new ArrayList<>();
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, idCliente);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(new Object[]{
+                            rs.getInt("id"),
+                            rs.getString("titulo"),
+                            rs.getString("autor"),
+                            rs.getString("codigoInventario"),
+                            rs.getDate("fechaPrestamo"),
+                            rs.getDate("fechaVencimiento"),
+                            rs.getDate("fechaDevolucion"),
+                            rs.getString("estado")
+                    });
+                }
+            }
+        }
+        return lista;
+    }
+
+    // Informacion de las multas
     private Prestamo mapPrestamo(ResultSet rs) throws SQLException {
         return new Prestamo(
                 rs.getInt("id"),

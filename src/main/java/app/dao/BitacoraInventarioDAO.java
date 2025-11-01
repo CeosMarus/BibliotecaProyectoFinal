@@ -8,174 +8,345 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BitacoraInventarioDAO extends BaseDAO {
+/**
+ * DAO para gestión de la Bitácora de Inventario
+ *
+ * RESPONSABILIDADES:
+ * - Registrar cada cambio/diferencia en ejemplares
+ * - Consultar historial de cambios
+ * - Generar reportes de auditoría
+ */
+public class BitacoraInventarioDAO {
 
-    private final Conexion conexion;
+    /**
+     * INSERTAR un registro en la bitácora
+     *
+     * CUÁNDO SE USA:
+     * - Al encontrar una diferencia durante un inventario
+     * - Al cambiar estado de un ejemplar
+     * - Al reasignar ubicación
+     * - Al dar de baja un ejemplar
+     *
+     * @param bitacora Objeto con los datos del registro
+     * @return ID generado, -1 si falla
+     */
+    public int insertar(BitacoraInventario bitacora) {
+        if (bitacora == null || bitacora.getIdEjemplar() == null) {
+            throw new IllegalArgumentException("El ejemplar es obligatorio");
+        }
 
-    public BitacoraInventarioDAO() {
-        conexion = new Conexion();
-    }
+        String sql = "INSERT INTO BitacoraInventario " +
+                "(idInventario, idEjemplar, diferencia, accionCorrectiva, fechaRegistro) " +
+                "VALUES (?, ?, ?, ?, ?)";
 
-    // ✅ Insertar nuevo movimiento
-    public boolean insertar(BitacoraInventario bitacora) {
-        String sql = "INSERT INTO BitacoraInventario (idInventario, tipoMovimiento, cantidad, fechaMovimiento, observacion, usuarioResponsable, estado) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-        try (Connection conn = conexion.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, bitacora.getIdInventario());
-            stmt.setString(2, bitacora.getTipoMovimiento());
-            stmt.setInt(3, bitacora.getCantidad());
-            stmt.setTimestamp(4, Timestamp.valueOf(bitacora.getFechaMovimiento()));
-            stmt.setString(5, bitacora.getObservacion());
-            stmt.setString(6, bitacora.getUsuarioResponsable());
-            stmt.setInt(7, bitacora.getEstado());
-
-            int filas = stmt.executeUpdate();
-            if (filas > 0) {
-                //Registar la accion en Auditoria
-                auditar("Inventarios", "NuevaBitacoraInventario", "Se creo una nueva bitacora de inventario con id: " + bitacora.getId());
-                return true;
+            // idInventario puede ser NULL (cambios fuera de inventario formal)
+            if (bitacora.getIdInventario() != null) {
+                ps.setInt(1, bitacora.getIdInventario());
+            } else {
+                ps.setNull(1, Types.INTEGER);
             }
 
-        } catch (SQLException e) {
-            System.err.println("Error al insertar BitacoraInventario: " + e.getMessage());
-            return false;
-        }
-        return false;
-    }
+            ps.setInt(2, bitacora.getIdEjemplar());
+            ps.setString(3, bitacora.getDiferencia());
+            ps.setString(4, bitacora.getAccionCorrectiva());
+            ps.setTimestamp(5, Timestamp.valueOf(bitacora.getFechaRegistro()));
 
-    // ✅ Listar todos los movimientos
-    public List<BitacoraInventario> listarTodos() {
-        List<BitacoraInventario> lista = new ArrayList<>();
-        String sql = "SELECT * FROM BitacoraInventario ORDER BY fechaMovimiento DESC";
+            int filasAfectadas = ps.executeUpdate();
 
-        try (Connection conn = conexion.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                BitacoraInventario b = new BitacoraInventario(
-                        rs.getInt("id"),
-                        rs.getInt("idInventario"),
-                        rs.getString("tipoMovimiento"),
-                        rs.getInt("cantidad"),
-                        rs.getTimestamp("fechaMovimiento").toLocalDateTime(),
-                        rs.getString("observacion"),
-                        rs.getString("usuarioResponsable"),
-                        rs.getInt("estado")
-                );
-                lista.add(b);
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error al listar BitacoraInventario: " + e.getMessage());
-        }
-        //Registar la accion en Auditoria
-        auditar("Inventarios", "ListarBitacoraInventario", "Se listo todas las bitacoras de inventario");
-        return lista;
-    }
-
-    // ✅ Buscar por ID
-    public BitacoraInventario buscarPorId(int id) {
-        String sql = "SELECT * FROM BitacoraInventario WHERE id = ?";
-
-        try (Connection conn = conexion.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    //Registar la accion en Auditoria
-                    auditar("Inventarios", "ListarBitacoraInventario", "Se listo todas la bitacora con ID: " + id);
-                    return new BitacoraInventario(
-                            rs.getInt("id"),
-                            rs.getInt("idInventario"),
-                            rs.getString("tipoMovimiento"),
-                            rs.getInt("cantidad"),
-                            rs.getTimestamp("fechaMovimiento").toLocalDateTime(),
-                            rs.getString("observacion"),
-                            rs.getString("usuarioResponsable"),
-                            rs.getInt("estado")
-                    );
-
+            if (filasAfectadas > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        int id = rs.getInt(1);
+                        bitacora.setId(id);
+                        return id;
+                    }
                 }
             }
 
         } catch (SQLException e) {
-            System.err.println("Error al buscar BitacoraInventario: " + e.getMessage());
+            System.err.println("Error al insertar en bitácora: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    /**
+     * REGISTRAR cambio simple (sin inventario asociado)
+     *
+     * ÚTIL PARA:
+     * - Cambios manuales de estado
+     * - Reasignaciones de ubicación
+     * - Cualquier modificación fuera de inventario formal
+     *
+     * @param idEjemplar ID del ejemplar afectado
+     * @param diferencia Descripción del cambio
+     * @param accion Acción realizada
+     * @return ID generado
+     */
+    public int registrarCambio(int idEjemplar, String diferencia, String accion) {
+        BitacoraInventario bitacora = new BitacoraInventario(
+                null, // Sin inventario asociado
+                idEjemplar,
+                diferencia,
+                accion
+        );
+        return insertar(bitacora);
+    }
+
+    /**
+     * BUSCAR registro por ID
+     *
+     * @param id ID del registro
+     * @return Objeto BitacoraInventario o null
+     */
+    public BitacoraInventario buscarPorId(int id) {
+        String sql = "SELECT b.*, " +
+                "       e.codigoInventario, " +
+                "       l.titulo AS tituloLibro, " +
+                "       inv.responsable AS responsableInventario " +
+                "FROM BitacoraInventario b " +
+                "INNER JOIN Ejemplar e ON b.idEjemplar = e.id " +
+                "INNER JOIN Libro l ON e.idLibro = l.id " +
+                "LEFT JOIN InventarioFisico inv ON b.idInventario = inv.id " +
+                "WHERE b.id = ?";
+
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapearBitacora(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error al buscar registro: " + e.getMessage());
         }
         return null;
     }
 
-    // ✅ Actualizar movimiento
-    public boolean actualizar(BitacoraInventario bitacora) {
-        String sql = "UPDATE BitacoraInventario SET idInventario=?, tipoMovimiento=?, cantidad=?, fechaMovimiento=?, observacion=?, usuarioResponsable=?, estado=? WHERE id=?";
+    /**
+     * LISTAR todos los registros con información completa
+     *
+     * INCLUYE:
+     * - Datos de la bitácora
+     * - Código del ejemplar
+     * - Título del libro
+     * - Responsable del inventario (si aplica)
+     *
+     * @return Lista completa ordenada por fecha descendente
+     */
+    public List<BitacoraInventario> listar() {
+        String sql = "SELECT b.*, " +
+                "       e.codigoInventario, " +
+                "       l.titulo AS tituloLibro, " +
+                "       inv.responsable AS responsableInventario " +
+                "FROM BitacoraInventario b " +
+                "INNER JOIN Ejemplar e ON b.idEjemplar = e.id " +
+                "INNER JOIN Libro l ON e.idLibro = l.id " +
+                "LEFT JOIN InventarioFisico inv ON b.idInventario = inv.id " +
+                "ORDER BY b.fechaRegistro DESC";
 
-        try (Connection conn = conexion.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, bitacora.getIdInventario());
-            stmt.setString(2, bitacora.getTipoMovimiento());
-            stmt.setInt(3, bitacora.getCantidad());
-            stmt.setTimestamp(4, Timestamp.valueOf(bitacora.getFechaMovimiento()));
-            stmt.setString(5, bitacora.getObservacion());
-            stmt.setString(6, bitacora.getUsuarioResponsable());
-            stmt.setInt(7, bitacora.getEstado());
-            stmt.setInt(8, bitacora.getId());
-
-            int filas = stmt.executeUpdate();
-            if (filas > 0) {
-                //Registar la accion en Auditoria
-                auditar("Inventarios", "ActualizarBitacoraInventario", "Se actualizo la bitacora con id: " + bitacora.getId());
-                return true;
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error al actualizar BitacoraInventario: " + e.getMessage());
-            return false;
-        }
-        return false;
+        return ejecutarConsulta(sql);
     }
 
-    // ✅ Eliminar (registro físico)
-    public boolean eliminar(int id) {
-        String sql = "DELETE FROM BitacoraInventario WHERE id = ?";
-        try (Connection conn = conexion.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            int filas = stmt.executeUpdate();
-            if (filas > 0) {
-                //Registar la accion en Auditoria
-                auditar("Inventarios", "EliminarBitacoraInventario", "Se elimino la bitarcora ID: " + id);
-                return true;
+    /**
+     * LISTAR registros de un inventario específico
+     *
+     * ÚTIL PARA:
+     * - Ver todas las diferencias encontradas en un conteo
+     * - Generar reporte de un inventario específico
+     *
+     * @param idInventario ID del inventario
+     * @return Lista de registros de ese inventario
+     */
+    public List<BitacoraInventario> listarPorInventario(int idInventario) {
+        String sql = "SELECT b.*, " +
+                "       e.codigoInventario, " +
+                "       l.titulo AS tituloLibro, " +
+                "       inv.responsable AS responsableInventario " +
+                "FROM BitacoraInventario b " +
+                "INNER JOIN Ejemplar e ON b.idEjemplar = e.id " +
+                "INNER JOIN Libro l ON e.idLibro = l.id " +
+                "LEFT JOIN InventarioFisico inv ON b.idInventario = inv.id " +
+                "WHERE b.idInventario = ? " +
+                "ORDER BY b.fechaRegistro DESC";
+
+        List<BitacoraInventario> lista = new ArrayList<>();
+
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, idInventario);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearBitacora(rs));
+                }
             }
+
         } catch (SQLException e) {
-            System.err.println("Error al eliminar BitacoraInventario: " + e.getMessage());
-            return false;
+            System.err.println("Error al listar por inventario: " + e.getMessage());
         }
-        return false;
+        return lista;
     }
 
-    // ✅ Cambiar estado (activar/inactivar)
-    public boolean cambiarEstado(int id, int nuevoEstado) {
-        String sql = "UPDATE BitacoraInventario SET estado = ? WHERE id = ?";
-        try (Connection conn = conexion.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, nuevoEstado);
-            stmt.setInt(2, id);
-            int filas = stmt.executeUpdate();
-            if (filas > 0) {
-                //Registar la accion en Auditoria
-                auditar("Inventarios", "CabioEstadoBitacora", "Se cambio el estado de bitacora: " + id + "a estado: " + nuevoEstado);
-                return true;
+    /**
+     * LISTAR historial de un ejemplar específico
+     *
+     * ÚTIL PARA:
+     * - Ver todos los cambios de un libro específico
+     * - Trazabilidad completa de un ejemplar
+     *
+     * @param idEjemplar ID del ejemplar
+     * @return Historial completo del ejemplar
+     */
+    public List<BitacoraInventario> listarPorEjemplar(int idEjemplar) {
+        String sql = "SELECT b.*, " +
+                "       e.codigoInventario, " +
+                "       l.titulo AS tituloLibro, " +
+                "       inv.responsable AS responsableInventario " +
+                "FROM BitacoraInventario b " +
+                "INNER JOIN Ejemplar e ON b.idEjemplar = e.id " +
+                "INNER JOIN Libro l ON e.idLibro = l.id " +
+                "LEFT JOIN InventarioFisico inv ON b.idInventario = inv.id " +
+                "WHERE b.idEjemplar = ? " +
+                "ORDER BY b.fechaRegistro DESC";
 
+        List<BitacoraInventario> lista = new ArrayList<>();
+
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, idEjemplar);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearBitacora(rs));
+                }
             }
+
         } catch (SQLException e) {
-            System.err.println("Error al cambiar estado en BitacoraInventario: " + e.getMessage());
-            return false;
+            System.err.println("Error al listar por ejemplar: " + e.getMessage());
         }
-        return false;
+        return lista;
+    }
+
+    /**
+     * LISTAR cambios en un rango de fechas
+     *
+     * @param fechaInicio Fecha y hora inicial
+     * @param fechaFin Fecha y hora final
+     * @return Lista de cambios en ese período
+     */
+    public List<BitacoraInventario> listarPorRangoFechas(LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+        String sql = "SELECT b.*, " +
+                "       e.codigoInventario, " +
+                "       l.titulo AS tituloLibro, " +
+                "       inv.responsable AS responsableInventario " +
+                "FROM BitacoraInventario b " +
+                "INNER JOIN Ejemplar e ON b.idEjemplar = e.id " +
+                "INNER JOIN Libro l ON e.idLibro = l.id " +
+                "LEFT JOIN InventarioFisico inv ON b.idInventario = inv.id " +
+                "WHERE b.fechaRegistro BETWEEN ? AND ? " +
+                "ORDER BY b.fechaRegistro DESC";
+
+        List<BitacoraInventario> lista = new ArrayList<>();
+
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setTimestamp(1, Timestamp.valueOf(fechaInicio));
+            ps.setTimestamp(2, Timestamp.valueOf(fechaFin));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearBitacora(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error al listar por rango de fechas: " + e.getMessage());
+        }
+        return lista;
+    }
+
+    /**
+     * CONTAR diferencias encontradas en un inventario
+     *
+     * @param idInventario ID del inventario
+     * @return Número de diferencias registradas
+     */
+    public int contarDiferenciasPorInventario(int idInventario) {
+        String sql = "SELECT COUNT(*) FROM BitacoraInventario WHERE idInventario = ?";
+
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, idInventario);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error al contar diferencias: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    /**
+     * Helper: Ejecuta consulta genérica
+     */
+    private List<BitacoraInventario> ejecutarConsulta(String sql) {
+        List<BitacoraInventario> lista = new ArrayList<>();
+
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(mapearBitacora(rs));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error en consulta: " + e.getMessage());
+        }
+        return lista;
+    }
+
+    /**
+     * Helper: Mapea ResultSet a objeto BitacoraInventario
+     */
+    private BitacoraInventario mapearBitacora(ResultSet rs) throws SQLException {
+        BitacoraInventario bitacora = new BitacoraInventario();
+        bitacora.setId(rs.getInt("id"));
+
+        // idInventario puede ser NULL
+        int idInv = rs.getInt("idInventario");
+        bitacora.setIdInventario(rs.wasNull() ? null : idInv);
+
+        bitacora.setIdEjemplar(rs.getInt("idEjemplar"));
+        bitacora.setDiferencia(rs.getString("diferencia"));
+        bitacora.setAccionCorrectiva(rs.getString("accionCorrectiva"));
+
+        Timestamp ts = rs.getTimestamp("fechaRegistro");
+        if (ts != null) {
+            bitacora.setFechaRegistro(ts.toLocalDateTime());
+        }
+
+        // Campos del JOIN
+        bitacora.setCodigoInventario(rs.getString("codigoInventario"));
+        bitacora.setTituloLibro(rs.getString("tituloLibro"));
+        bitacora.setResponsableInventario(rs.getString("responsableInventario"));
+
+        return bitacora;
     }
 }
