@@ -73,7 +73,7 @@ public class ReservaDAO extends BaseDAO {
 
     // ELIMINACIÓN LÓGICA: cambia estadoReserva a 0
     public boolean eliminar(int id) throws SQLException {
-        int confirm = JOptionPane.showConfirmDialog(null, "¿Desea desactivar esta reserva?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(null, "¿Desea retirar esta reserva?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return false;
 
         String sql = "UPDATE Reserva SET estadoReserva=0 WHERE id=?";
@@ -86,8 +86,8 @@ public class ReservaDAO extends BaseDAO {
             {
                 //Registo en auditoria
                 auditar("Reservas", "DesactivarReserva",
-                        "Se desactivo la reserva con ID: " + id);
-                JOptionPane.showMessageDialog(null, "Reserva desactivada correctamente.");
+                        "Se retiro la reserva con ID: " + id);
+                JOptionPane.showMessageDialog(null, "Reserva retirada correctamente.");
             }
             return desactivado;
         }
@@ -149,6 +149,42 @@ public class ReservaDAO extends BaseDAO {
         return null;
     }
 
+    // REORDENAR la cola de reservas de un libro
+    public void reordenarCola(int idLibro) throws SQLException {
+        String sqlSelect = "SELECT id FROM Reserva WHERE idLibro = ? AND estadoReserva = 1 ORDER BY fechaReserva ASC";
+        String sqlUpdate = "UPDATE Reserva SET posicionCola = ? WHERE id = ?";
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement psSelect = con.prepareStatement(sqlSelect);
+             PreparedStatement psUpdate = con.prepareStatement(sqlUpdate)) {
+
+            psSelect.setInt(1, idLibro);
+            try (ResultSet rs = psSelect.executeQuery()) {
+
+                int posicion = 1;
+                while (rs.next()) {
+                    int idReserva = rs.getInt("id");
+                    psUpdate.setInt(1, posicion);
+                    psUpdate.setInt(2, idReserva);
+                    psUpdate.addBatch(); // agrupa las actualizaciones
+                    posicion++;
+                }
+
+                psUpdate.executeBatch(); // ejecuta todas las actualizaciones juntas
+            }
+
+            // Registrar en auditoría
+            auditar("Reservas", "ReordenarCola",
+                    "Se reordenó la cola de reservas para el libro ID: " + idLibro);
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Error al reordenar la cola: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            throw e;
+        }
+    }
+
     // LISTAR por Cliente
     public List<Reserva> listarPorCliente(int idCliente) throws SQLException {
         List<Reserva> lista = new ArrayList<>();
@@ -165,6 +201,54 @@ public class ReservaDAO extends BaseDAO {
         auditar("Reservas", "ListarReserva",
                 "Se listo las reservas del cliente ID: " + idCliente);
         return lista;
+    }
+    //Actualizar estado de reserva
+    //Estados posibles 1- Activo
+    // 0 - retirado
+    // 2 - Vencida
+    // 3 - libro disponible confirmar prestamo?
+    public boolean actualizarEstadoReserva(int idReserva, int nuevoEstado) throws SQLException {
+        // Validación básica
+        if (idReserva <= 0) {
+            JOptionPane.showMessageDialog(null,
+                    "ID de reserva inválido.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        String sql = "UPDATE Reserva SET estadoReserva = ? WHERE id = ?";
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, nuevoEstado);
+            ps.setInt(2, idReserva);
+
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                JOptionPane.showMessageDialog(null,
+                        "Estado de la reserva actualizado correctamente.",
+                        "Actualización Exitosa", JOptionPane.INFORMATION_MESSAGE);
+
+                // 🔹 Registrar acción en auditoría
+                auditar("Reservas", "ActualizarEstadoReserva",
+                        "Se actualizó el estado de la reserva ID: " + idReserva +
+                                " al estado: " + nuevoEstado);
+
+                return true;
+            } else {
+                JOptionPane.showMessageDialog(null,
+                        "No se encontró la reserva con ID: " + idReserva,
+                        "Sin resultados", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Error al actualizar el estado de la reserva: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            throw e;
+        }
     }
 
     // HELPER: mapear ResultSet a Reserva
