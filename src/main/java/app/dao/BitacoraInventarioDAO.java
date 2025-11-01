@@ -7,29 +7,10 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-/**
- * DAO para gestión de la Bitácora de Inventario
- *
- * RESPONSABILIDADES:
- * - Registrar cada cambio/diferencia en ejemplares
- * - Consultar historial de cambios
- * - Generar reportes de auditoría
- */
 public class BitacoraInventarioDAO {
 
-    /**
-     * INSERTAR un registro en la bitácora
-     *
-     * CUÁNDO SE USA:
-     * - Al encontrar una diferencia durante un inventario
-     * - Al cambiar estado de un ejemplar
-     * - Al reasignar ubicación
-     * - Al dar de baja un ejemplar
-     *
-     * @param bitacora Objeto con los datos del registro
-     * @return ID generado, -1 si falla
-     */
+    //INSERTAR un registro en la bitácora
+
     public int insertar(BitacoraInventario bitacora) {
         if (bitacora == null || bitacora.getIdEjemplar() == null) {
             throw new IllegalArgumentException("El ejemplar es obligatorio");
@@ -73,19 +54,8 @@ public class BitacoraInventarioDAO {
         return -1;
     }
 
-    /**
-     * REGISTRAR cambio simple (sin inventario asociado)
-     *
-     * ÚTIL PARA:
-     * - Cambios manuales de estado
-     * - Reasignaciones de ubicación
-     * - Cualquier modificación fuera de inventario formal
-     *
-     * @param idEjemplar ID del ejemplar afectado
-     * @param diferencia Descripción del cambio
-     * @param accion Acción realizada
-     * @return ID generado
-     */
+    // REGISTRAR cambio simple (sin inventario asociado)
+
     public int registrarCambio(int idEjemplar, String diferencia, String accion) {
         BitacoraInventario bitacora = new BitacoraInventario(
                 null, // Sin inventario asociado
@@ -96,12 +66,8 @@ public class BitacoraInventarioDAO {
         return insertar(bitacora);
     }
 
-    /**
-     * BUSCAR registro por ID
-     *
-     * @param id ID del registro
-     * @return Objeto BitacoraInventario o null
-     */
+    // BUSCAR registro por ID
+
     public BitacoraInventario buscarPorId(int id) {
         String sql = "SELECT b.*, " +
                 "       e.codigoInventario, " +
@@ -130,17 +96,7 @@ public class BitacoraInventarioDAO {
         return null;
     }
 
-    /**
-     * LISTAR todos los registros con información completa
-     *
-     * INCLUYE:
-     * - Datos de la bitácora
-     * - Código del ejemplar
-     * - Título del libro
-     * - Responsable del inventario (si aplica)
-     *
-     * @return Lista completa ordenada por fecha descendente
-     */
+    //LISTAR todos los registros con información completa
     public List<BitacoraInventario> listar() {
         String sql = "SELECT b.*, " +
                 "       e.codigoInventario, " +
@@ -155,16 +111,6 @@ public class BitacoraInventarioDAO {
         return ejecutarConsulta(sql);
     }
 
-    /**
-     * LISTAR registros de un inventario específico
-     *
-     * ÚTIL PARA:
-     * - Ver todas las diferencias encontradas en un conteo
-     * - Generar reporte de un inventario específico
-     *
-     * @param idInventario ID del inventario
-     * @return Lista de registros de ese inventario
-     */
     public List<BitacoraInventario> listarPorInventario(int idInventario) {
         String sql = "SELECT b.*, " +
                 "       e.codigoInventario, " +

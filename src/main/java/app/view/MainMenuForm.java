@@ -101,12 +101,8 @@ public class MainMenuForm {
     }
 
     private void abrirMenuCliente() {
-        JFrame f = new JFrame("Portal del Cliente");
-        f.setContentPane(new MenuClienteForm().panelPrincipal);
-        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        f.pack();
-        f.setLocationRelativeTo(null);
-        f.setVisible(true);
+       MenuClienteForm menuClienteForm = new MenuClienteForm();
+       menuClienteForm.setVisible(true);
     }
 
     private void abrirAperturaCaja() {
