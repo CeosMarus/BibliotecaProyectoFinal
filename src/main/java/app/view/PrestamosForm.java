@@ -104,7 +104,7 @@ public class PrestamosForm extends JFrame {
     }
 
 
-    // 🔹 Cargar ejemplares activos
+    // Cargar ejemplares activos
     private void cargarEjemplares() {
         try {
             cbEjemplar.removeAllItems();
@@ -117,7 +117,7 @@ public class PrestamosForm extends JFrame {
         }
     }
 
-    // 🔹 Listar préstamos
+    // listar préstamos
     private void listarPrestamos() {
         try {
             modelo.setRowCount(0);
@@ -138,7 +138,7 @@ public class PrestamosForm extends JFrame {
         }
     }
 
-    // 🔹 Guardar préstamo
+    //Guardar préstamo
     private void guardarPrestamo() {
         try {
             Cliente cliente = (Cliente) cbCliente.getSelectedItem();

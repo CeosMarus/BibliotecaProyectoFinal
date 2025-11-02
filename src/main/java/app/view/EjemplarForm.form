@@ -116,7 +116,7 @@
           <grid row="8" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Ingresa la Fecha mas Alta de Libros"/>
+          <text value="Ingresa la fecha de alta"/>
         </properties>
       </component>
       <component id="e43cd" class="javax.swing.JTextField" binding="txtFechaAlta">
@@ -132,7 +132,7 @@
           <grid row="9" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Ingresa la fecha mas baja de libros"/>
+          <text value="Ingresa la fecha de baja"/>
         </properties>
       </component>
       <component id="15c9f" class="javax.swing.JTextField" binding="txtFechaBaja">
