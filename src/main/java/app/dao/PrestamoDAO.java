@@ -10,14 +10,17 @@ import javax.swing.JOptionPane;
 
 public class PrestamoDAO extends BaseDAO {
 
-    // INSERTAR
+    // INSERTAR (guardando fechaDevolucion cuando venga desde el formulario)
     public int insertar(Prestamo p) throws SQLException {
         if (p == null) throw new SQLException("Prestamo no puede ser nulo.");
         if (isEjemplarPrestado(p.getIdEjemplar())) {
             throw new SQLException("El ejemplar ya está prestado actualmente.");
         }
 
-        String sql = "INSERT INTO Prestamo (idCliente, idEjemplar, fechaPrestamo, fechaVencimiento, estado) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Prestamo " +
+                "(idCliente, idEjemplar, fechaPrestamo, fechaVencimiento, fechaDevolucion, estado) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -25,7 +28,16 @@ public class PrestamoDAO extends BaseDAO {
             ps.setInt(2, p.getIdEjemplar());
             ps.setDate(3, new java.sql.Date(p.getFechaPrestamo().getTime()));
             ps.setDate(4, new java.sql.Date(p.getFechaVencimiento().getTime()));
-            ps.setInt(5, 1); // Activo al insertar
+
+            // Si el formulario te envía la "fechaDevolucion prevista", la guardas;
+            // si viniera null, guardas NULL en la BD.
+            if (p.getFechaDevolucion() != null) {
+                ps.setDate(5, new java.sql.Date(p.getFechaDevolucion().getTime()));
+            } else {
+                ps.setNull(5, Types.DATE);
+            }
+
+            ps.setInt(6, 1); // estado = Activo al insertar
 
             ps.executeUpdate();
 
@@ -33,17 +45,16 @@ public class PrestamoDAO extends BaseDAO {
                 if (rs.next()) {
                     int id = rs.getInt(1);
                     p.setId(id);
-                    //Registo en auditoria
+                    // Auditoría
                     auditar("Prestamos", "PrestamoEjemplar",
-                            "Se realizo el prestamo del ejemplar ID: " + p.getIdEjemplar() +
-                                    ", Al cliente" + p.getIdCliente());
+                            "Se realizó el préstamo del ejemplar ID: " + p.getIdEjemplar() +
+                                    ", al cliente " + p.getIdCliente());
                     return id;
                 }
             }
         }
         return -1;
     }
-
     // DEVOLVER (Actualización de estado y fechaDevolucion)
     public boolean devolver(int id) throws SQLException {
         String sql = "UPDATE Prestamo SET estado=0, fechaDevolucion=GETDATE() WHERE id=?";
@@ -190,6 +201,7 @@ public class PrestamoDAO extends BaseDAO {
         }
         return false;
     }
+    
     // Listar préstamos del cliente con datos descriptivos
     public List<Object[]> listarPrestamosClienteDetalle(int idCliente) throws SQLException {
         String sql = "SELECT P.id, L.titulo, A.nombre AS autor, E.codigoInventario, " +

@@ -6,6 +6,8 @@ import app.dao.PrestamoDAO;
 import app.model.Cliente;
 import app.model.Ejemplar;
 import app.model.Prestamo;
+import app.model.Libro;
+import app.dao.LibroDAO;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -56,31 +58,37 @@ public class PrestamosForm extends JFrame {
         btnLimpiar.addActionListener(e -> limpiarCampos());
 
         // Botón Regresar
-        btnRegresar.addActionListener(e -> {
-            dispose();
-        });
+        btnRegresar.addActionListener(e -> dispose());
     }
 
-    // 🧱 Configura tabla
+    //Configura tabla
     private void configurarTabla() {
-        modelo = new DefaultTableModel(new Object[]{"ID", "Cliente", "Ejemplar", "Fecha Préstamo", "Vencimiento", "Devolución", "Estado"}, 0);
+
+        modelo = new DefaultTableModel(
+                new Object[]{
+                        "ID",
+                        "ID Cliente",
+                        "ID Ejemplar",
+                        "Fecha Préstamo",
+                        "Fecha Vencimiento",
+                        "Fecha Devolución",
+                        "Estado"
+                }, 0
+        );
         tblPrestamos.setModel(modelo);
         tblPrestamos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
 
-    //Cargar clientes activos y mostrar "Nombre - NIT"
+    // Cargar clientes activos y mostrar "Nombre - NIT"
     private void cargarClientes() {
         try {
             cbCliente.removeAllItems();
             List<Cliente> clientes = clienteDAO.listar();
 
             for (Cliente c : clientes) {
-                if (c.getEstado() == 1) {
-                    cbCliente.addItem(c);
-                }
+                if (c.getEstado() == 1) cbCliente.addItem(c);
             }
 
-            // 🎨 Renderer para mostrar solo nombre y NIT en el ComboBox
             cbCliente.setRenderer(new DefaultListCellRenderer() {
                 @Override
                 public java.awt.Component getListCellRendererComponent(
@@ -103,7 +111,6 @@ public class PrestamosForm extends JFrame {
         }
     }
 
-
     // Cargar ejemplares activos
     private void cargarEjemplares() {
         try {
@@ -117,19 +124,32 @@ public class PrestamosForm extends JFrame {
         }
     }
 
-    // listar préstamos
+    // Listar préstamos
     private void listarPrestamos() {
         try {
             modelo.setRowCount(0);
             List<Prestamo> lista = prestamoDAO.listar();
+
             for (Prestamo p : lista) {
+                // Cliente
+                Cliente cli = clienteDAO.buscarPorId(p.getIdCliente());
+                String clienteNombre = (cli != null) ? cli.getNombre() : ("Cliente #" + p.getIdCliente());
+
+                // Ejemplar + Libro
+                Ejemplar ej = ejemplarDAO.buscarPorId(p.getIdEjemplar());
+                String libroTitulo = "Ejemplar #" + p.getIdEjemplar();
+                if (ej != null && ej.getIdLibro() > 0) {
+                    Libro libro = new LibroDAO().obtenerPorId(ej.getIdLibro());
+                    if (libro != null) libroTitulo = libro.getTitulo();
+                }
+
                 modelo.addRow(new Object[]{
                         p.getId(),
-                        p.getIdCliente(),
-                        p.getIdEjemplar(),
+                        clienteNombre,
+                        libroTitulo,
                         p.getFechaPrestamo(),
                         p.getFechaVencimiento(),
-                        p.getFechaDevolucion(),
+                        p.getFechaDevolucion() != null ? p.getFechaDevolucion() : "",
                         p.getEstadoDescripcion()
                 });
             }
@@ -138,7 +158,7 @@ public class PrestamosForm extends JFrame {
         }
     }
 
-    //Guardar préstamo
+    // Guardar préstamo (corregido para usar constructor válido)
     private void guardarPrestamo() {
         try {
             Cliente cliente = (Cliente) cbCliente.getSelectedItem();
@@ -151,8 +171,19 @@ public class PrestamosForm extends JFrame {
 
             Date fechaPrestamo = new Date();
             Date fechaVencimiento = new Date(fechaPrestamo.getTime() + (7L * 24 * 60 * 60 * 1000)); // +7 días
+            Date fechaDevolucion = new Date(fechaPrestamo.getTime() + (7L * 24 * 60 * 60 * 1000)); // +7 días (prevista)
 
-            Prestamo p = new Prestamo(cliente.getId(), ejemplar.getId(), fechaPrestamo, fechaVencimiento, 1);
+            // ✅ Usa el constructor existente de tu modelo:
+            Prestamo p = new Prestamo(
+                    cliente.getId(),
+                    ejemplar.getId(),
+                    fechaPrestamo,
+                    fechaVencimiento,
+                    1 // estado
+            );
+
+            // ✅ y setea la fechaDevolucion prevista:
+            p.setFechaDevolucion(fechaDevolucion);
 
             prestamoDAO.insertar(p);
             JOptionPane.showMessageDialog(this, "Préstamo guardado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
@@ -164,7 +195,7 @@ public class PrestamosForm extends JFrame {
         }
     }
 
-    // 🔹 Actualizar préstamo
+    // Actualizar préstamo
     private void actualizarPrestamo() {
         int fila = tblPrestamos.getSelectedRow();
         if (fila == -1) {
@@ -194,7 +225,7 @@ public class PrestamosForm extends JFrame {
         }
     }
 
-    //Eliminar (desactivar)
+    // Eliminar (desactivar)
     private void eliminarPrestamo() {
         int fila = tblPrestamos.getSelectedRow();
         if (fila == -1) {
@@ -217,14 +248,14 @@ public class PrestamosForm extends JFrame {
         }
     }
 
-    //Limpiar campos
+    // Limpiar campos
     private void limpiarCampos() {
         cbCliente.setSelectedIndex(-1);
         cbEjemplar.setSelectedIndex(-1);
         tblPrestamos.clearSelection();
     }
 
-    //MAIN (para pruebas independientes)
+    // MAIN (para pruebas independientes)
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new PrestamosForm().setVisible(true));
     }
