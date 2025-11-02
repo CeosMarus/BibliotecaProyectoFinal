@@ -16,10 +16,10 @@ public class EjemplarForm extends JFrame {
     private JTable tablaEjemplares;
     private JComboBox<String> comboLibro;
     private JTextField txtCodigoInventario;
-    private JTextField txtSala;
+    private JComboBox<String> cbSala;
     private JTextField txtEstante;
     private JTextField txtNivel;
-    private JTextField txtEstadoCopia;
+    private JComboBox<String> cbEstadoCopia;
     private JTextField txtFechaAlta;
     private JTextField txtFechaBaja;
     private JButton btnGuardar;
@@ -27,7 +27,6 @@ public class EjemplarForm extends JFrame {
     private JButton btnEliminar;
     private JButton btnLimpiar;
     private JButton btnSalir;
-
 
     private int idSeleccionado = -1;
 
@@ -46,23 +45,42 @@ public class EjemplarForm extends JFrame {
         btnLimpiar.addActionListener(e -> limpiarCampos());
         btnSalir.addActionListener(e -> salirFormulario());
 
-
-
-
         tablaEjemplares.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) cargarSeleccionTabla();
         });
+
+        // ✅ Auto generar código cuando cambia el libro
+        comboLibro.addActionListener(e -> generarCodigoInventarioAutomatico());
+
+        // ✅ Control campo Fecha Baja según estado copia
+        cbEstadoCopia.addActionListener(e -> {
+            String estado = (String) cbEstadoCopia.getSelectedItem();
+            if ("Nuevo".equals(estado)) {
+                txtFechaBaja.setText("");
+                txtFechaBaja.setEnabled(false);
+            } else {
+                txtFechaBaja.setEnabled(true);
+            }
+        });
     }
-
-
-    // ============================================================
-    // INICIALIZACIÓN
-    // ============================================================
 
     private void inicializarFormulario() {
         configurarTabla();
         cargarLibros();
         cargarEjemplares();
+
+        cbSala.addItem("Sala Norte");
+        cbSala.addItem("Sala Sur");
+        cbSala.addItem("Sala Este");
+        cbSala.addItem("Sala Oeste");
+        cbSala.addItem("Sala Central");
+
+        cbEstadoCopia.addItem("Nuevo");
+        cbEstadoCopia.addItem("Dañado");
+        cbEstadoCopia.addItem("Perdido");
+
+        // ✅ Bloquear fecha baja al inicio
+        txtFechaBaja.setEnabled(false);
     }
 
     private void configurarTabla() {
@@ -79,7 +97,7 @@ public class EjemplarForm extends JFrame {
         List<LibroConAutor> libros = libroDAO.listarTodos();
 
         if (libros.isEmpty()) {
-            comboLibro.addItem("⚠️ No hay libros activos");
+            comboLibro.addItem("⚠ No hay libros activos");
             comboLibro.setEnabled(false);
         } else {
             comboLibro.setEnabled(true);
@@ -116,22 +134,11 @@ public class EjemplarForm extends JFrame {
     }
 
     private void salirFormulario() {
-        int confirmar = JOptionPane.showConfirmDialog(
-                this,
-                "¿Deseas cerrar el formulario?",
-                "Confirmar salida",
-                JOptionPane.YES_NO_OPTION
-        );
-
-        if (confirmar == JOptionPane.YES_OPTION) {
-            this.dispose(); // Cierra solo este JFrame
+        if (JOptionPane.showConfirmDialog(this, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            this.dispose();
         }
     }
-
-
-    // ============================================================
-    // CRUD
-    // ============================================================
 
     private void guardarEjemplar(ActionEvent evt) {
         try {
@@ -144,23 +151,20 @@ public class EjemplarForm extends JFrame {
             Ejemplar e = new Ejemplar();
             e.setIdLibro(idLibro);
             e.setCodigoInventario(txtCodigoInventario.getText().trim());
-            e.setSala(txtSala.getText().trim());
+            e.setSala(cbSala.getSelectedItem().toString());
             e.setEstante(txtEstante.getText().trim());
             e.setNivel(txtNivel.getText().trim());
-            e.setEstadoCopia(txtEstadoCopia.getText().trim());
+            e.setEstadoCopia(cbEstadoCopia.getSelectedItem().toString());
             e.setFechaAlta(fechaAlta);
             e.setFechaBaja(fechaBaja);
             e.setEstado(1);
 
-            EjemplarDAO dao = new EjemplarDAO();
-            dao.insertar(e);
+            new EjemplarDAO().insertar(e);
 
             JOptionPane.showMessageDialog(this, "Ejemplar guardado correctamente.");
             limpiarCampos();
             cargarEjemplares();
 
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, "Error en el formato de fecha. Usa AAAA-MM-DD.");
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al guardar: " + e.getMessage());
         }
@@ -183,23 +187,20 @@ public class EjemplarForm extends JFrame {
             e.setId(idSeleccionado);
             e.setIdLibro(idLibro);
             e.setCodigoInventario(txtCodigoInventario.getText().trim());
-            e.setSala(txtSala.getText().trim());
+            e.setSala(cbSala.getSelectedItem().toString());
             e.setEstante(txtEstante.getText().trim());
             e.setNivel(txtNivel.getText().trim());
-            e.setEstadoCopia(txtEstadoCopia.getText().trim());
+            e.setEstadoCopia(cbEstadoCopia.getSelectedItem().toString());
             e.setFechaAlta(fechaAlta);
             e.setFechaBaja(fechaBaja);
             e.setEstado(1);
 
-            EjemplarDAO dao = new EjemplarDAO();
-            dao.actualizar(e);
+            new EjemplarDAO().actualizar(e);
 
             JOptionPane.showMessageDialog(this, "Ejemplar actualizado correctamente.");
             limpiarCampos();
             cargarEjemplares();
 
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, "Formato de fecha incorrecto. Usa AAAA-MM-DD.");
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al actualizar: " + e.getMessage());
         }
@@ -211,13 +212,11 @@ public class EjemplarForm extends JFrame {
             return;
         }
 
-        int confirmar = JOptionPane.showConfirmDialog(this,
-                "¿Deseas desactivar este ejemplar?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (JOptionPane.showConfirmDialog(this, "¿Deseas desactivar este ejemplar?",
+                "Confirmar", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
-        if (confirmar == JOptionPane.YES_OPTION) {
             try {
-                EjemplarDAO dao = new EjemplarDAO();
-                dao.eliminar(idSeleccionado);
+                new EjemplarDAO().eliminar(idSeleccionado);
                 JOptionPane.showMessageDialog(this, "Ejemplar desactivado correctamente.");
                 limpiarCampos();
                 cargarEjemplares();
@@ -227,114 +226,108 @@ public class EjemplarForm extends JFrame {
         }
     }
 
-
-    // ============================================================
-    // AUXILIARES
-    // ============================================================
-
     private boolean validarCampos() {
-        // Campos obligatorios
         if (txtCodigoInventario.getText().trim().isEmpty() ||
-                txtSala.getText().trim().isEmpty() ||
                 txtEstante.getText().trim().isEmpty() ||
                 txtNivel.getText().trim().isEmpty() ||
-                txtEstadoCopia.getText().trim().isEmpty() ||
                 txtFechaAlta.getText().trim().isEmpty()) {
 
             JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios excepto Fecha Baja.");
             return false;
         }
 
-        /*
-        // Validación numérica: Nivel
-        try {
-            Integer.parseInt(txtNivel.getText().trim());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "El campo Nivel solo acepta valores numéricos.");
-            txtNivel.requestFocus();
-            return false;
-        }
-
-
-        // Validación numérica: Código de Inventario (si aplica)
-        try {
-            Integer.parseInt(txtCodigoInventario.getText().trim());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "El campo Código de Inventario solo acepta valores numéricos.");
-            txtCodigoInventario.requestFocus();
-            return false;
-        }
-        */
-        // Validación numérica: Nivel
-        try {
-            Integer.parseInt(txtEstante.getText().trim());
-        } catch (NumberFormatException e) {
+        try { Integer.parseInt(txtEstante.getText().trim()); }
+        catch (Exception e) {
             JOptionPane.showMessageDialog(this, "El campo Estante solo acepta valores numéricos.");
-            txtEstante.requestFocus();
             return false;
         }
 
-        // Validación de fecha
         try {
             Date.valueOf(txtFechaAlta.getText().trim());
-            if (!txtFechaBaja.getText().isEmpty()) {
-                Date.valueOf(txtFechaBaja.getText().trim());
-            }
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, "Formato de fecha incorrecto. Usa AAAA-MM-DD.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Formato de Fecha Alta incorrecto. Usa AAAA-MM-DD.");
             return false;
+        }
+
+        // ✅ Nueva validación para estados Dañado / Perdido
+        String estado = (String) cbEstadoCopia.getSelectedItem();
+        if (!"Nuevo".equals(estado)) {
+            if (txtFechaBaja.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar una Fecha de Baja para ejemplares Dañados o Perdidos.");
+                return false;
+            }
+            try { Date.valueOf(txtFechaBaja.getText().trim()); }
+            catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Formato de Fecha Baja incorrecto. Usa AAAA-MM-DD.");
+                return false;
+            }
         }
 
         return true;
     }
 
-
     private void limpiarCampos() {
         idSeleccionado = -1;
         txtCodigoInventario.setText("");
-        txtSala.setText("");
         txtEstante.setText("");
         txtNivel.setText("");
-        txtEstadoCopia.setText("");
         txtFechaAlta.setText("");
         txtFechaBaja.setText("");
+        cbSala.setSelectedIndex(0);
+        cbEstadoCopia.setSelectedIndex(0);
+        txtFechaBaja.setEnabled(false);
         if (comboLibro.getItemCount() > 0) comboLibro.setSelectedIndex(0);
         tablaEjemplares.clearSelection();
     }
 
     private void cargarSeleccionTabla() {
         int fila = tablaEjemplares.getSelectedRow();
-        if (fila != -1) {
-            idSeleccionado = (int) tablaEjemplares.getValueAt(fila, 0);
-            txtCodigoInventario.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 1)));
+        if (fila == -1) return;
 
-            // Seleccionar el libro correcto por ID en el combo
-            String libroNombreTabla = String.valueOf(tablaEjemplares.getValueAt(fila, 2));
-            for (int i = 0; i < comboLibro.getItemCount(); i++) {
-                String item = comboLibro.getItemAt(i);
-                // Cada item tiene formato "id - nombre"
-                if (item.endsWith(" - " + libroNombreTabla)) {
-                    comboLibro.setSelectedIndex(i);
-                    break;
-                }
+        idSeleccionado = (int) tablaEjemplares.getValueAt(fila, 0);
+        txtCodigoInventario.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 1)));
+
+        String libro = String.valueOf(tablaEjemplares.getValueAt(fila, 2));
+        for (int i = 0; i < comboLibro.getItemCount(); i++) {
+            if (comboLibro.getItemAt(i).endsWith(" - " + libro)) {
+                comboLibro.setSelectedIndex(i);
+                break;
             }
-
-            txtSala.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 3)));
-            txtEstante.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 4)));
-            txtNivel.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 5)));
-            txtEstadoCopia.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 6)));
-            txtFechaAlta.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 7)));
-            txtFechaBaja.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 8)));
         }
+
+        cbSala.setSelectedItem(String.valueOf(tablaEjemplares.getValueAt(fila, 3)));
+        txtEstante.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 4)));
+        txtNivel.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 5)));
+        cbEstadoCopia.setSelectedItem(String.valueOf(tablaEjemplares.getValueAt(fila, 6)));
+        txtFechaAlta.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 7)));
+        txtFechaBaja.setText(String.valueOf(tablaEjemplares.getValueAt(fila, 8)));
+
+        // ✅ Habilitar fecha baja si es Dañado o Perdido
+        txtFechaBaja.setEnabled(!"Nuevo".equals(cbEstadoCopia.getSelectedItem()));
     }
 
+    private void generarCodigoInventarioAutomatico() {
+        if (comboLibro.getSelectedItem() == null) return;
 
-    // MAIN para realizar pruebas independientes
+        String valor = comboLibro.getSelectedItem().toString();
+        if (!valor.contains(" - ")) return;
+
+        String titulo = valor.substring(valor.indexOf(" - ") + 3).trim();
+
+        StringBuilder codigo = new StringBuilder();
+        for (String palabra : titulo.split(" ")) {
+            if (!palabra.isEmpty()) {
+                codigo.append(Character.toUpperCase(palabra.charAt(0)));
+            }
+        }
+
+        txtCodigoInventario.setText(codigo.toString());
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception ignored) {}
+            try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception ignored) {}
             EjemplarForm form = new EjemplarForm();
             form.setVisible(true);
         });

@@ -9,6 +9,7 @@ public class MenuClienteForm extends JFrame {
     private JButton btnMisMultas;
     private JButton btnSalir;
     private JButton btnMisReservas;
+    private JButton btnBuscarLibro;
 
     public MenuClienteForm() {
         setTitle("Menú Cliente");
@@ -37,6 +38,10 @@ public class MenuClienteForm extends JFrame {
             setVisible(false);
         });
 
+        btnBuscarLibro.addActionListener(e -> {
+            BuscarLibroForm form = new BuscarLibroForm();
+            form.setVisible(true);
+        });
         btnSalir.addActionListener(e -> CerrarVentana());
     }
     private void CerrarVentana(){
@@ -51,6 +56,7 @@ public class MenuClienteForm extends JFrame {
             this.dispose();
         }
     }
+
 
     public static void main(String[] args) {
         // Simular cliente logueado para pruebas

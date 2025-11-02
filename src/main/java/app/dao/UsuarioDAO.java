@@ -177,6 +177,35 @@ public class UsuarioDAO extends BaseDAO {
             }
         }
     }
+    /* Listar usuarios con rol ADMIN o BIBLIOTECARIO */
+    public List<Usuario> listarEncargadosInventario() throws SQLException {
+        String sql = "SELECT id, username, nombre, rol, estado FROM usuario " +
+                "WHERE estado = 1 AND (rol = 'ADMIN' OR rol = 'BIBLIOTECARIO') " +
+                "ORDER BY nombre ASC";
+
+        List<Usuario> lista = new ArrayList<>();
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(new Usuario(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getString("nombre"),
+                        rs.getString("rol"),
+                        rs.getInt("estado")
+                ));
+            }
+        }
+
+        // Auditoría
+        auditar("Usuarios", "ListarEncargadosInventario",
+                "Se listaron usuarios ADMIN y BIBLIOTECARIO");
+
+        return lista;
+    }
 
     //Devolver username para ComboBox
     /**
