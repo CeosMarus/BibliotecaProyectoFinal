@@ -71,7 +71,7 @@ public class MainMenuForm {
             btnAdquisiciones.setEnabled(false);
             btnInventario.setEnabled(false);
             btnReporteria.setEnabled(false);
-            btnAuditoria.setEnabled(true);
+            btnAuditoria.setEnabled(false);
         }
 
         // ✅ Habilitar botón portal cliente SOLO si es CLIENTE o ADMIN
@@ -91,6 +91,8 @@ public class MainMenuForm {
         if (btnUsuario != null) btnUsuario.addActionListener(e -> abrirUsuario());
         if (btnInventario != null) btnInventario.addActionListener(e -> abrirInventario());
         if (btnClientes != null) btnClientes.addActionListener(e -> abrirClientes());
+        if (btnAuditoria != null) btnAuditoria.addActionListener(e -> abrirAuditoria());
+        if (btnReservas != null) btnReservas.addActionListener(e -> abrirReservas());
 
         // 🔐 Cerrar sesión
         if(btnCerrarSesion != null) btnCerrarSesion.addActionListener(e -> {
@@ -134,6 +136,18 @@ public class MainMenuForm {
         f.pack();
         f.setLocationRelativeTo(null);
         f.setVisible(true);
+    }
+    private void abrirAuditoria() {
+        JFrame f = new JFrame("Auditoria");
+        f.setContentPane(new AuditoriaForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+    private void abrirReservas() {
+        JFrame f = new JFrame("Reservas");
+        f.setContentPane(new ReservasForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
     }
 
     // main tests
