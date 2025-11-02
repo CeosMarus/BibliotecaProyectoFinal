@@ -134,6 +134,24 @@ public class ClienteDAO extends BaseDAO {
         return lista;
     }
 
+    /* Lisatar todos los clientes (activos y desactivados) */
+    public List<Cliente> listarActivos() {
+        List<Cliente> lista = new ArrayList<>();
+        String sql = "SELECT id, nombre, nit, telefono, correo, estado FROM Cliente WHERE estado = 1 ORDER BY id ASC";
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) lista.add(mapCliente(rs));
+        } catch (SQLException e) {
+            System.err.println("Error al listar clientes: " + e.getMessage());
+        }
+        //Registo en auditoria
+        auditar("Cliente", "ListarCliente",
+                "Se listo todos los clientes" );
+        return lista;
+    }
+
     /* Buscar cliente por nombre (solo activos) */
     public List<Cliente> buscarPorNombre(String nombre) {
         List<Cliente> lista = new ArrayList<>();
