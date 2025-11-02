@@ -13,7 +13,7 @@ import java.util.List;
 public class AutorForm extends JFrame {
 
     // Componentes del formulario (respetando tu UI Designer)
-    private JPanel panelPrincipal;
+    public JPanel panelPrincipal;
     private JTextField txtNombre;
     private JTextArea txtBiografia;
     private JComboBox<String> cboEstado;

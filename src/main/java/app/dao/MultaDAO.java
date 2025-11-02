@@ -13,12 +13,12 @@ import java.math.BigDecimal;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MultaDAO extends BaseDAO {
+public class MultaDAO {
 
     // Instancia del DAO de movimientos para registrar los ingresos en caja
     private final CajaMovimientoDAO movimientoDAO = new CajaMovimientoDAO();
 
-    // Query con JOIN para obtener el nombre del cliente y otros detalles
+    // JOIN para obtener el nombre del cliente y otros detalles
     private final String SQL_LISTAR_DETALLES =
             "SELECT M.id, C.nombre AS nombreCliente, P.id AS idPrestamo, M.idCliente, M.monto, M.diasAtraso, M.estadoPago, M.fechaPago, M.observaciones, M.estado " +
                     "FROM Multa M " +
@@ -26,7 +26,7 @@ public class MultaDAO extends BaseDAO {
                     "JOIN Prestamo P ON M.idPrestamo = P.id " +
                     "WHERE M.estado = 1 ORDER BY M.id DESC";
 
-    // 🆕 Query para buscar por nombre de cliente (usa LIKE para coincidencias parciales)
+    //Query para buscar por nombre de cliente
     private final String SQL_BUSCAR_POR_NOMBRE =
             "SELECT M.id, C.nombre AS nombreCliente, P.id AS idPrestamo, M.idCliente, M.monto, M.diasAtraso, M.estadoPago, M.fechaPago, M.observaciones, M.estado " +
                     "FROM Multa M " +
@@ -35,7 +35,6 @@ public class MultaDAO extends BaseDAO {
                     "WHERE M.estado = 1 AND C.nombre LIKE ? " + // 💡 Condición de búsqueda
                     "ORDER BY C.nombre ASC, M.id DESC";
 
-    // --------------------------- INSERCIÓN -----------------------------------
     public int insertar(Multa multa, int idUsuario) throws SQLException {
         if (multa == null) throw new SQLException("La multa no puede ser nula.");
 
@@ -71,41 +70,32 @@ public class MultaDAO extends BaseDAO {
                     multa.setId(idGenerado);
                 }
             }
-            //Registrar acción en Auditoría
-            if (idGenerado > 0) {
-                auditar("Financiero", "InsertarMulta",
-                        "Se registró una nueva multa con ID: " + idGenerado +
-                                ", Cliente ID: " + multa.getIdCliente() +
-                                ", Monto: Q" + multa.getMonto());
-            }
         }
 
-        // Lógica de Acumulación: Registrar Movimiento en Caja si la multa fue pagada al momento de crearla
-        if (idGenerado > 0 && multa.getEstadoPago() == 1) { // estadoPago == 1 (Pagado)
+        // Registra Movimiento en Caja si la multa fue pagada al momento de crearla
+        if (idGenerado > 0 && multa.getEstadoPago() == 1) { // estadoPago = 1 (Pagado)
             Date ahora = new Date();
             CajaMovimiento movimiento = new CajaMovimiento(
                     ahora,
                     ahora,
-                    1, // Tipo 1: Ingreso
+                    1,
                     "Multa",
                     multa.getMonto(),
-                    idUsuario, // Usuario que registra el ingreso
+                    idUsuario,
                     "Pago de Multa ID: " + idGenerado + ". Préstamo: " + multa.getIdPrestamo()
             );
-            // Esto utiliza el método insertar del CajaMovimientoDAO.
+            //se usa el metodo de insertar
             try {
                 movimientoDAO.insertar(movimiento);
-                // Registrar en auditoría también el movimiento asociado
-                auditar("Financiero", "RegistrarMovimiento",
-                        "Se registró movimiento de caja por pago de multa ID: " + idGenerado);
             } catch (SQLException e) {
-                // Si falla el registro en Caja, se registra en log, pero la multa ya está insertada.
+                //En caso que falle se mostrara un mensaje en la consola sobre el error
                 Logger.getLogger(MultaDAO.class.getName()).log(Level.SEVERE, "Error al registrar movimiento de caja para Multa ID: " + idGenerado, e);
             }
         }
+
         return idGenerado;
     }
-    // --------------------------- ACTUALIZAR ----------------------------------
+    // actualiza el dato de la multa
     public boolean actualizar(Multa multa) throws SQLException {
         if (multa == null) throw new SQLException("La multa no puede ser nula.");
 
@@ -126,16 +116,10 @@ public class MultaDAO extends BaseDAO {
             ps.setString(7, multa.getObservaciones());
             ps.setInt(8, multa.getId());
 
-            int filas = ps.executeUpdate();
-            if (filas > 0) {
-                // Registrar en auditoria
-                auditar("Financiero", "ActualizarMulta","Se actualizo la multa ID: " + multa.getId());
-                return true;
-            }
             return ps.executeUpdate() > 0;
         }
     }
-    // --------------------------- REGISTRAR COBRO -----------------------------
+    // Registra la fecha de pago
     public boolean registrarCobroYCaja(Multa multa, int idUsuario) throws SQLException {
         if (multa == null || multa.getId() == null) throw new SQLException("Multa o ID nulo.");
 
@@ -146,14 +130,8 @@ public class MultaDAO extends BaseDAO {
         // Actualizar la multa en la base de datos
         boolean multaActualizada = actualizar(multa);
 
-        // 3. Registrar el movimiento en caja (si se actualizó correctamente)
+        // Registrar el movimiento en caja (si se actualizó correctamente)
         if (multaActualizada) {
-            //Registo en auditoria
-            auditar("Financiero", "ActualizarPagoMulta",
-                    "Se registró el pago de la multa ID: " + multa.getId() +
-                            ", Monto: Q" + multa.getMonto() +
-                            ", Usuario ID: " + idUsuario);
-
             Date ahora = new Date();
             CajaMovimiento movimiento = new CajaMovimiento(
                     ahora,
@@ -166,11 +144,6 @@ public class MultaDAO extends BaseDAO {
             );
             try {
                 movimientoDAO.insertar(movimiento);
-                // Registrar en auditoría también el movimiento asociado
-                auditar("Financiero", "RegistrarMovimiento",
-                        "Se registró movimiento de caja por pago de multa ID: " + multa.getId() +
-                                ", Monto: Q" + multa.getMonto() +
-                                ", Usuario ID: " + idUsuario);
             } catch (SQLException e) {
                 Logger.getLogger(MultaDAO.class.getName()).log(Level.SEVERE, "Error al registrar cobro en caja para Multa ID: " + multa.getId(), e);
             }
@@ -178,7 +151,7 @@ public class MultaDAO extends BaseDAO {
         }
         return false;
     }
-    // --------------------------- ELIMINAR (LÓGICO) ---------------------------
+    // Realiza la eliminacion logica
     public boolean eliminar(int id) throws SQLException {
         int confirm = JOptionPane.showConfirmDialog(null, "¿Desea desactivar esta multa?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return false;
@@ -187,16 +160,10 @@ public class MultaDAO extends BaseDAO {
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
-            int filas = ps.executeUpdate();
-            if (filas > 0) {
-                //Registar la accion en Auditoria
-                auditar("Financiero", "DesactivarMulta", "Se desactivo la multa con ID: " + id);
-                return  true;
-            }
-            return false;
+            return ps.executeUpdate() > 0;
         }
     }
-    // --------------------------- BUSCAR POR ID -------------------------------
+    //Busca por el ID del cliente
     public Multa buscarPorId(int id) throws SQLException {
         String sql = "SELECT id, idPrestamo, idCliente, monto, diasAtraso, estadoPago, fechaPago, observaciones, estado FROM Multa WHERE id=?";
         try (Connection con = Conexion.getConnection();
@@ -204,29 +171,20 @@ public class MultaDAO extends BaseDAO {
 
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next())
-                {
-                    //Registar la accion en Auditoria
-                    auditar("Financiero", "ListarMulta", "Se listo la multa con ID: " + id);
-                    return mapMulta(rs);
-                }
+                if (rs.next()) return mapMulta(rs);
             }
         }
         return null;
     }
 
-    // 🆕 ----------------------- BUSCAR POR NOMBRE DE CLIENTE --------------------
-    /**
-     * Busca multas activas por coincidencia parcial en el nombre del cliente.
-     * Devuelve una lista de MultaDetalle para incluir el nombre.
-     */
+    // Busca Multas por el nombre del cliente
     public List<MultaDetalle> buscarPorNombreCliente(String nombre) throws SQLException {
         List<MultaDetalle> lista = new ArrayList<>();
 
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(SQL_BUSCAR_POR_NOMBRE)) {
 
-            // El patrón %nombre% permite buscar coincidencias parciales
+            // Permite la busqueda haciendo similitud en los caracteres
             ps.setString(1, "%" + nombre + "%");
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -235,11 +193,9 @@ public class MultaDAO extends BaseDAO {
                 }
             }
         }
-        //Registar la accion en Auditoria
-        auditar("Financiero", "ListarMulta", "Se listo las multas del cliente: " + nombre);
         return lista;
     }
-    // --------------------------- LISTAR (BASE) -------------------------------
+    // Listar Datos
     public List<Multa> listar() throws SQLException {
         String sql = "SELECT id, idPrestamo, idCliente, monto, diasAtraso, estadoPago, fechaPago, observaciones, estado FROM Multa ORDER BY id DESC";
         List<Multa> lista = new ArrayList<>();
@@ -250,11 +206,9 @@ public class MultaDAO extends BaseDAO {
 
             while (rs.next()) lista.add(mapMulta(rs));
         }
-        //Registar la accion en Auditoria
-        auditar("Financiero", "ListarMulta", "Se listo todas las multas");
         return lista;
     }
-    // --------------------------- LISTAR PENDIENTES ---------------------------
+    //listara los pendientes
     public List<MultaDetalle> listarPendientesConDetalles() throws SQLException {
         List<MultaDetalle> lista = new ArrayList<>();
         // Filtra por estado=1 (Activa) y estadoPago=0 (Pendiente) y trae el nombre del cliente
@@ -269,16 +223,13 @@ public class MultaDAO extends BaseDAO {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                lista.add(mapMultaDetalle(rs)); // Usa el mapeador de detalle
+                lista.add(mapMultaDetalle(rs));
             }
         }
-        //Registar la accion en Auditoria
-        auditar("Financiero", "ListarMulta", "Se listo las multas pendientes");
         return lista;
     }
-    // --------------------------- LISTAR DETALLES (NUEVO) ---------------------
 
-    // Nuevo método para listar con detalles
+    //Metodo para listar los detalles de las multas
     public List<MultaDetalle> listarConDetalles() throws SQLException {
         List<MultaDetalle> lista = new ArrayList<>();
 
@@ -290,15 +241,31 @@ public class MultaDAO extends BaseDAO {
                 lista.add(mapMultaDetalle(rs));
             }
         }
-        //Registar la accion en Auditoria
-        auditar("Financiero", "ListarMulta", "Se listo las multas con detalles");
         return lista;
     }
-    // --------------------------- MAPPERS -------------------------------------
+    // Listar multas del cliente (solo lectura para cliente)
+    public List<MultaDetalle> listarMultasPorCliente(int idCliente) throws SQLException {
+        String sql = "SELECT M.id, C.nombre AS nombreCliente, P.id AS idPrestamo, M.idCliente, " +
+                "M.monto, M.diasAtraso, M.estadoPago, M.fechaPago, M.observaciones, M.estado " +
+                "FROM Multa M " +
+                "JOIN Cliente C ON M.idCliente = C.id " +
+                "JOIN Prestamo P ON M.idPrestamo = P.id " +
+                "WHERE M.estado = 1 AND M.idCliente = ? " +
+                "ORDER BY M.id DESC";
 
-    /**
-     * Mapea un ResultSet a un objeto Multa (modelo base).
-     */
+        List<MultaDetalle> lista = new ArrayList<>();
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, idCliente);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) lista.add(mapMultaDetalle(rs));
+            }
+        }
+        return lista;
+    }
+
     private Multa mapMulta(ResultSet rs) throws SQLException {
         Multa multa = new Multa();
         multa.setId(rs.getInt("id"));
@@ -315,13 +282,10 @@ public class MultaDAO extends BaseDAO {
         return multa;
     }
 
-    /**
-     * Mapea un ResultSet a un objeto MultaDetalle (modelo extendido para la vista).
-     */
     private MultaDetalle mapMultaDetalle(ResultSet rs) throws SQLException {
         MultaDetalle detalle = new MultaDetalle();
 
-        // 1. Mapear campos de Multa (usa los setters heredados)
+        //campos de Multa (usa los setters heredados)
         detalle.setId(rs.getInt("id"));
         detalle.setIdPrestamo(rs.getInt("idPrestamo"));
         detalle.setIdCliente(rs.getInt("idCliente"));

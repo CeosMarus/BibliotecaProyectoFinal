@@ -96,7 +96,7 @@ public class AperturaCajaView extends JPanel {
         btnAbrirCaja.setFont(new Font("Arial", Font.BOLD, 14));
         panelBoton.add(btnAbrirCaja);
 
-        // 🔹 Botón Salir
+        // Botón Salir
         btnSalir = new JButton("Salir");
         btnSalir.setFont(new Font("Arial", Font.PLAIN, 14));
         panelBoton.add(btnSalir);

@@ -1,6 +1,7 @@
 package app.view;
 
 import app.core.Sesion;
+import app.model.Usuario;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,18 +13,18 @@ public class MainMenuForm {
     private JButton btnLibros;
     private JButton btnAutores;
     private JButton btnCerrarSesion;
-    private JButton btnClientes;//b
-    private JButton btnCategorias;//b
-    private JButton btnPrestamos;//b
-    private JButton btnReservas;//b
-    private JButton btnDevoluciones;//b
-    private JButton btnMultas;//f
-    private JButton btnCaja;//f
+    private JButton btnClientes;
+    private JButton btnCategorias;
+    private JButton btnPrestamos;
+    private JButton btnReservas;
+    private JButton btnDevoluciones;
+    private JButton btnMultas;
+    private JButton btnCaja;
     private JButton btnAdquisiciones;
-    private JButton btnInventario;//b
-    private JButton btnReporteria;//b-f
+    private JButton btnInventario;
+    private JButton btnReporteria;
     private JButton btnAuditoria;
-
+    private JButton btnMenuCliente; // ✅ Ya está en tu diseño
 
     public MainMenuForm() {
         panelPrincipal.setPreferredSize(new Dimension(900, 600));
@@ -33,28 +34,28 @@ public class MainMenuForm {
                     + " (" + Sesion.getUsuario().getRol() + ")");
         }
 
-//Condicionales para los accesos
-       if (Sesion.hasRole("Bibliotecario")) {
-           btnUsuario.setEnabled(false);
-           btnLibros.setEnabled(false);
-           btnAutores.setEnabled(false);
-           btnMultas.setEnabled(false);
-           btnCaja.setEnabled(false);
-           btnAdquisiciones.setEnabled(false);
-           btnAuditoria.setEnabled(false);
+        // ===== CONFIGURACIÓN DE ROLES =====
+        if (Sesion.hasRole("Bibliotecario")) {
+            btnUsuario.setEnabled(false);
+            btnLibros.setEnabled(false);
+            btnAutores.setEnabled(false);
+            btnMultas.setEnabled(false);
+            btnCaja.setEnabled(false);
+            btnAdquisiciones.setEnabled(false);
+            btnAuditoria.setEnabled(false);
         }
         else if (Sesion.hasRole("Financiero")) {
-           btnUsuario.setEnabled(false);
-           btnLibros.setEnabled(false);
-           btnAutores.setEnabled(false);
-           btnClientes.setEnabled(false);
-           btnCategorias.setEnabled(false);
-           btnPrestamos.setEnabled(false);
-           btnReservas.setEnabled(false);
-           btnDevoluciones.setEnabled(false);
-           btnAdquisiciones.setEnabled(false);
-           btnInventario.setEnabled(false);
-           btnAuditoria.setEnabled(false);
+            btnUsuario.setEnabled(false);
+            btnLibros.setEnabled(false);
+            btnAutores.setEnabled(false);
+            btnClientes.setEnabled(false);
+            btnCategorias.setEnabled(false);
+            btnPrestamos.setEnabled(false);
+            btnReservas.setEnabled(false);
+            btnDevoluciones.setEnabled(false);
+            btnAdquisiciones.setEnabled(false);
+            btnInventario.setEnabled(false);
+            btnAuditoria.setEnabled(false);
         }
         else if (!Sesion.hasRole("ADMIN")) {
             btnUsuario.setEnabled(false);
@@ -70,49 +71,42 @@ public class MainMenuForm {
             btnAdquisiciones.setEnabled(false);
             btnInventario.setEnabled(false);
             btnReporteria.setEnabled(false);
+            btnAuditoria.setEnabled(true);
         }
 
-
-/*
-        boolean esAdmin = Sesion.hasRole("ADMIN");
-        if (btnUsuario != null) {
-            btnUsuario.setEnabled(esAdmin);
-            // si prefieres ocultarlo para OPERADOR:
-            // btnRegistrarUsuario.setVisible(esAdmin);
+        // ✅ Habilitar botón portal cliente SOLO si es CLIENTE o ADMIN
+        if (Sesion.hasRole("CLIENTE") || Sesion.hasRole("ADMIN")) {
+            if (btnMenuCliente != null) {
+                btnMenuCliente.setEnabled(true);
+                btnMenuCliente.addActionListener(e -> abrirMenuCliente());
+            }
+        } else {
+            if (btnMenuCliente != null) {
+                btnMenuCliente.setEnabled(false);
+            }
         }
-*/
-        //----Botones para acceder a los modulos----
-        //if (btnAutores != null)  btnAutores.addActionListener(e -> abrirAutores());
-        //if (btnLibros  != null)  btnLibros.addActionListener(e -> abrirLibros());
+
+        // ---- Botones funcionales ----
         if (btnCaja  != null)  btnCaja.addActionListener(e -> abrirAperturaCaja());
         if (btnUsuario != null) btnUsuario.addActionListener(e -> abrirUsuario());
-        if (btnAuditoria != null) btnAuditoria.addActionListener(e -> abrirAuditoria());
-        // metódo para cerrar sesión
+        if (btnInventario != null) btnInventario.addActionListener(e -> abrirInventario());
+        if (btnClientes != null) btnClientes.addActionListener(e -> abrirClientes());
+
+        // 🔐 Cerrar sesión
         if(btnCerrarSesion != null) btnCerrarSesion.addActionListener(e -> {
             Sesion.cerrarSesion();
             JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(panelPrincipal);
             parentFrame.dispose();
             new LoginForm().showForm();
         });
-
-    }
-/*
-    private void abrirAutores() {
-        JFrame f = new JFrame("Gestión de Autores");
-        f.setContentPane(new AutorForm().panelPrincipal);
-        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
     }
 
-    private void abrirLibros() {
-        JFrame f = new JFrame("Gestión de Libros");
-        f.setContentPane(new LibroForm().panelPrincipal);
-        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    private void abrirMenuCliente() {
+       MenuClienteForm menuClienteForm = new MenuClienteForm();
+       menuClienteForm.setVisible(true);
     }
-*/
+
     private void abrirAperturaCaja() {
-        //if (!Sesion.hasRole("ADMIN")) return;
         JFrame f = new JFrame("Apertura de Caja");
         f.setContentPane(new AperturaCajaView());
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -120,21 +114,29 @@ public class MainMenuForm {
     }
 
     private void abrirUsuario() {
-        //if (!Sesion.hasRole("ADMIN")) return;
         JFrame f = new JFrame("Registro de Usuario");
         f.setContentPane(new UsuariosForm().panelPrincipal);
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
     }
-    private void abrirAuditoria() {
-        //if (!Sesion.hasRole("ADMIN")) return;
-        JFrame f = new JFrame("Auditoria");
-        f.setContentPane(new AuditoriaForm().panelPrincipal);
-        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+
+    private void abrirInventario() {
+        JFrame f = new JFrame("Gestión de Inventario Físico");
+        InventarioForm inventarioForm = new InventarioForm();
+        inventarioForm.setVisible(true);
     }
 
-    // launcher opcional
+    private void abrirClientes() {
+        Usuario u = new Usuario(1, "admin", "Administrador", "ADMIN", 1);
+        JFrame f = new JFrame("Gestión de Clientes");
+        f.setContentPane(new ClienteForm(u).panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        f.pack();
+        f.setLocationRelativeTo(null);
+        f.setVisible(true);
+    }
+
+    // main tests
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame f = new JFrame("Menú Principal – Librería");
