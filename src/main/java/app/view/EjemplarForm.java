@@ -329,10 +329,7 @@ public class EjemplarForm extends JFrame {
     }
 
 
-    // ============================================================
-    // MAIN
-    // ============================================================
-
+    // MAIN para realizar pruebas independientes
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {

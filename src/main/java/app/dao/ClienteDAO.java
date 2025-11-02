@@ -171,6 +171,26 @@ public class ClienteDAO extends BaseDAO {
                 "Se listo clientes con nombre: " + nombre );
         return lista;
     }
+    /* Buscar cliente por ID */
+    public Cliente buscarPorId(int id) {
+        String sql = "SELECT id, nombre, nit, telefono, correo, estado FROM Cliente WHERE id = ?";
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Auditoría
+                    auditar("Cliente", "BuscarClientePorID",
+                            "Se buscó cliente por ID: " + id);
+                    return mapCliente(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al buscar cliente por ID: " + e.getMessage());
+        }
+        return null;
+    }
 
     /* Validar duplicado de NIT */
     public boolean existeNit(String nit, int idExcluir) throws SQLException {

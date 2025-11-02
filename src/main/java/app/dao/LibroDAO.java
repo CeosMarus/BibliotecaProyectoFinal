@@ -101,6 +101,36 @@ public class LibroDAO extends BaseDAO {
         return false;
     }
 
+    // Buscar libro por ID
+    public Libro obtenerPorId(int id) {
+        String sql = "SELECT id, titulo, isbn, anio, idAutor, idCategoria, estado FROM Libro WHERE id = ?";
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Libro libro = new Libro();
+                    libro.setId(rs.getInt("id"));
+                    libro.setTitulo(rs.getString("titulo"));
+                    libro.setIsbn(rs.getString("isbn"));
+                    libro.setAnio(rs.getInt("anio"));
+                    libro.setIdAutor(rs.getInt("idAutor"));
+                    libro.setIdCategoria(rs.getInt("idCategoria"));
+                    libro.setEstado(rs.getInt("estado"));
+
+                    auditar("Catalogo-Libro", "BuscarLibroPorID",
+                            "Se buscó libro ID: " + id);
+
+                    return libro;
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error al obtener libro por ID: " + e.getMessage());
+        }
+        return null;
+    }
+
     // Listar todos los libros (con Autor y Categoria)
     public List<LibroConAutor> listarTodos() {
         List<LibroConAutor> lista = new ArrayList<>();

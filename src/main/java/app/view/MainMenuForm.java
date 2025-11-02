@@ -25,6 +25,7 @@ public class MainMenuForm {
     private JButton btnReporteria;
     private JButton btnAuditoria;
     private JButton btnMenuCliente; // ✅ Ya está en tu diseño
+    private JButton btnDevolucion;
 
     public MainMenuForm() {
         panelPrincipal.setPreferredSize(new Dimension(900, 600));
@@ -43,6 +44,7 @@ public class MainMenuForm {
             btnCaja.setEnabled(false);
             btnAdquisiciones.setEnabled(false);
             btnAuditoria.setEnabled(false);
+            btnDevoluciones.setEnabled(false);
         }
         else if (Sesion.hasRole("Financiero")) {
             btnUsuario.setEnabled(false);
@@ -91,6 +93,7 @@ public class MainMenuForm {
         if (btnUsuario != null) btnUsuario.addActionListener(e -> abrirUsuario());
         if (btnInventario != null) btnInventario.addActionListener(e -> abrirInventario());
         if (btnClientes != null) btnClientes.addActionListener(e -> abrirClientes());
+        if( btnDevolucion != null)btnDevolucion.addActionListener(e -> abrirDevolucion());
 
         // 🔐 Cerrar sesión
         if(btnCerrarSesion != null) btnCerrarSesion.addActionListener(e -> {
@@ -104,6 +107,10 @@ public class MainMenuForm {
     private void abrirMenuCliente() {
        MenuClienteForm menuClienteForm = new MenuClienteForm();
        menuClienteForm.setVisible(true);
+    }
+    private void abrirDevolucion() {
+        DevolucionForm devolucionForm = new DevolucionForm();
+        devolucionForm.setVisible(true);
     }
 
     private void abrirAperturaCaja() {
