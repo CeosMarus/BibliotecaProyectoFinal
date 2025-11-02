@@ -1,5 +1,6 @@
 package app.view;
 
+import app.core.Sesion;
 import app.dao.ClienteDAO;
 import app.dao.LibroDAO;
 import app.dao.ReservaDAO;
@@ -165,15 +166,31 @@ public class ReservasForm
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 reservaDAO.eliminar(idReserva);
-
                 int idLibro = obtenerIdLibroPorTitulo(tituloLibro);
                 reservaDAO.actualizarPosicionesCola(idLibro);
+                int disponibles = reservaDAO.verificarEjemplaresDisponibles(tituloLibro);
 
-                JOptionPane.showMessageDialog(null, "Reserva eliminada correctamente.");
-                cargarReservas();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(null, "Error al eliminar: " + e.getMessage());
-            }
+                if (disponibles > 0) {
+                    //Si hay ejemplares, actualizar la primera reserva en cola (estado 1 → 2)
+                    int idSiguiente = reservaDAO.obtenerSiguienteEnCola(idLibro);
+                    if (idSiguiente != -1) {
+                        reservaDAO.actualizarEstadoReserva(idSiguiente, 2); // 2 = Ejemplar Disponible
+                        JOptionPane.showMessageDialog(null,
+                                "El siguiente cliente en la cola fue notificado (Reserva disponible).");
+                        if (Sesion.hasRole("Bibliotecario"))
+                        {
+                            JOptionPane.showMessageDialog(
+                                    null,
+                                    "El libro '" + tituloLibro + "' ahora está disponible para el siguiente cliente en la cola.",
+                                    "Aviso de disponibilidad",
+                                    JOptionPane.INFORMATION_MESSAGE
+                            );
+                        }
+                    }
+                }
+                } catch (SQLException e) {
+                    JOptionPane.showMessageDialog(null, "Error al eliminar: " + e.getMessage());
+                }
         }
     }
 
@@ -272,6 +289,15 @@ public class ReservasForm
                                 && horasTranscurridas(r.getFechaReserva(), ahora) >= 24) {
                             reservaDAO.actualizarEstadoReserva(r.getId(), 3); // 3 = Vencida
                             System.out.println("Reserva ID " + r.getId() + " marcada como VENCIDA.");
+                            if (Sesion.hasRole("Bibliotecario"))
+                            {
+                                SwingUtilities.invokeLater(() ->
+                                JOptionPane.showMessageDialog(
+                                        null,
+                                "La reserva ID: " + r.getId()+ "' ha vencido.",
+                                "Aviso de reserva vencida",
+                                JOptionPane.WARNING_MESSAGE));
+                            }
                         }
                     }
                     //SwingUtilities.invokeLater(() -> cargarReservas());

@@ -324,6 +324,24 @@ public class ReservaDAO extends BaseDAO {
             return desactivado;
         }
     }
+    public int obtenerSiguienteEnCola(int idLibro) throws SQLException {
+        String sql = """
+        SELECT id 
+        FROM Reserva
+        WHERE idLibro = ? AND estadoReserva = 1
+        ORDER BY posicionCola ASC
+        LIMIT 1
+    """;
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idLibro);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("id");
+            }
+        }
+        return -1; // no hay reservas en cola
+    }
 
     // LISTAR todas las reservas
     public List<Reserva> listar() throws SQLException {
