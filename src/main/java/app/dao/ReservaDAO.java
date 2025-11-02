@@ -41,172 +41,94 @@ public class ReservaDAO extends BaseDAO {
         return -1;
     }
 
-    // ACTUALIZAR Reserva
-    public boolean actualizar(Reserva r) throws SQLException {
-        if (r == null || r.getId() == null) {
-            JOptionPane.showMessageDialog(null, "Reserva inválida para actualizar.", "Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
+    // VERIFICAR ejemplares disponibles por título (excluyendo los prestados y reservados)
+    public int verificarEjemplaresDisponibles(String tituloLibro) throws SQLException {
+        String sql = """
+        SELECT COUNT(e.id) AS disponibles
+        FROM Ejemplar e
+        JOIN Libro l ON e.idLibro = l.id
+        WHERE l.titulo = ?
+          AND e.estado = 1
+          AND e.id NOT IN (
+              SELECT p.idEjemplar
+              FROM Prestamo p
+              WHERE p.estado = 1
+          )
+          AND l.id NOT IN (
+              SELECT r.idLibro
+              FROM Reserva r
+              WHERE r.estadoReserva IN (1, 2) -- 1 = En cola, 2 = Ejemplar disponible
+          )
+    """;
 
-        String sql = "UPDATE Reserva SET idCliente=?, idLibro=?, fechaReserva=?, estadoReserva=?, posicionCola=? WHERE id=?";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setInt(1, r.getIdCliente());
-            ps.setInt(2, r.getIdLibro());
-            ps.setDate(3, new java.sql.Date(r.getFechaReserva().getTime()));
-            ps.setInt(4, r.getEstadoReserva());
-            ps.setInt(5, r.getPosicionCola());
-            ps.setInt(6, r.getId());
+            ps.setString(1, tituloLibro);
 
-            boolean actualizado = ps.executeUpdate() > 0;
-            if (actualizado)
-            {
-                JOptionPane.showMessageDialog(null, "Reserva actualizada correctamente.");
-                //Registo en auditoria
-                auditar("Reservas", "ActualizaReserva",
-                        "Se actualizo la reserva con ID: " + r.getId());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("disponibles");
+                }
             }
-            return actualizado;
         }
+        return 0;
     }
 
-    // ELIMINACIÓN LÓGICA: cambia estadoReserva a 0
-    public boolean eliminar(int id) throws SQLException {
-        int confirm = JOptionPane.showConfirmDialog(null, "¿Desea retirar esta reserva?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        if (confirm != JOptionPane.YES_OPTION) return false;
+    //LISTAR reservas con datos del cliente y libro
+    public List<Object[]> listarReservasConDetalles() throws SQLException {
+        List<Object[]> lista = new ArrayList<>();
 
-        String sql = "UPDATE Reserva SET estadoReserva=0 WHERE id=?";
-        try (Connection con = Conexion.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        String sql = """
+        SELECT 
+            r.id, 
+            c.nombre AS cliente, 
+            c.nit, 
+            l.titulo AS libro, 
+            r.fechaReserva, 
+            CASE r.estadoReserva
+                WHEN 0 THEN 'Retirada'
+                WHEN 1 THEN 'Activo, en cola'
+                WHEN 2 THEN 'Ejemplar Disponible'
+                WHEN 3 THEN 'Vencida'
+                ELSE 'Desconocido'
+            END AS estadoReservaNombre,
+            r.posicionCola
+        FROM Reserva r
+        JOIN Cliente c ON r.idCliente = c.id
+        JOIN Libro l ON r.idLibro = l.id
+        WHERE r.estadoReserva != 0
+        ORDER BY r.fechaReserva DESC
+    """;
 
-            ps.setInt(1, id);
-            boolean desactivado = ps.executeUpdate() > 0;
-            if (desactivado)
-            {
-                //Registo en auditoria
-                auditar("Reservas", "DesactivarReserva",
-                        "Se retiro la reserva con ID: " + id);
-                JOptionPane.showMessageDialog(null, "Reserva retirada correctamente.");
-            }
-            return desactivado;
-        }
-    }
-
-    // LISTAR todas las reservas
-    public List<Reserva> listar() throws SQLException {
-        List<Reserva> lista = new ArrayList<>();
-        String sql = "SELECT * FROM Reserva ORDER BY id DESC";
         try (Connection con = Conexion.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                lista.add(mapReserva(rs));
+                lista.add(new Object[]{
+                        rs.getInt("id"),
+                        rs.getString("cliente"),
+                        rs.getString("nit"),
+                        rs.getString("libro"),
+                        rs.getDate("fechaReserva"),
+                        rs.getString("estadoReservaNombre"), // aquí ya viene como texto
+                        rs.getInt("posicionCola")
+                });
             }
         }
-        //Registo en auditoria
-        auditar("Reservas", "ListarReserva",
-                "Se listaron todas las reservas");
+
+        auditar("Reservas", "ListarConDetalles",
+                "Se listaron reservas con información de cliente y libro");
         return lista;
     }
 
-    // LISTAR solo reservas activas
-    public List<Reserva> listarActivas() throws SQLException {
-        List<Reserva> lista = new ArrayList<>();
-        String sql = "SELECT * FROM Reserva WHERE estadoReserva=1 ORDER BY id DESC";
-        try (Connection con = Conexion.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                lista.add(mapReserva(rs));
-            }
-        }
-        //Registo en auditoria
-        auditar("Reservas", "ListarReserva",
-                "Se listaron las reservas activas");
-        return lista;
-    }
-
-    // BUSCAR por ID
-    public Reserva buscarPorId(int id) throws SQLException {
-        String sql = "SELECT * FROM Reserva WHERE id=?";
-        try (Connection con = Conexion.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next())
-                {
-                    //Registo en auditoria
-                    auditar("Reservas", "ListarReserva",
-                            "Se busco la reserva ID: " + id );
-                    return mapReserva(rs);
-                }
-            }
-        }
-        return null;
-    }
-
-    // REORDENAR la cola de reservas de un libro
-    public void reordenarCola(int idLibro) throws SQLException {
-        String sqlSelect = "SELECT id FROM Reserva WHERE idLibro = ? AND estadoReserva = 1 ORDER BY fechaReserva ASC";
-        String sqlUpdate = "UPDATE Reserva SET posicionCola = ? WHERE id = ?";
-
-        try (Connection con = Conexion.getConnection();
-             PreparedStatement psSelect = con.prepareStatement(sqlSelect);
-             PreparedStatement psUpdate = con.prepareStatement(sqlUpdate)) {
-
-            psSelect.setInt(1, idLibro);
-            try (ResultSet rs = psSelect.executeQuery()) {
-
-                int posicion = 1;
-                while (rs.next()) {
-                    int idReserva = rs.getInt("id");
-                    psUpdate.setInt(1, posicion);
-                    psUpdate.setInt(2, idReserva);
-                    psUpdate.addBatch(); // agrupa las actualizaciones
-                    posicion++;
-                }
-
-                psUpdate.executeBatch(); // ejecuta todas las actualizaciones juntas
-            }
-
-            // Registrar en auditoría
-            auditar("Reservas", "ReordenarCola",
-                    "Se reordenó la cola de reservas para el libro ID: " + idLibro);
-
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null,
-                    "Error al reordenar la cola: " + e.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
-            throw e;
-        }
-    }
-
-    // LISTAR por Cliente
-    public List<Reserva> listarPorCliente(int idCliente) throws SQLException {
-        List<Reserva> lista = new ArrayList<>();
-        String sql = "SELECT * FROM Reserva WHERE idCliente=? AND estadoReserva=1 ORDER BY fechaReserva DESC";
-        try (Connection con = Conexion.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setInt(1, idCliente);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) lista.add(mapReserva(rs));
-            }
-        }
-        //Registo en auditoria
-        auditar("Reservas", "ListarReserva",
-                "Se listo las reservas del cliente ID: " + idCliente);
-        return lista;
-    }
     //Actualizar estado de reserva
-    //Estados posibles 1- Activo
+    //Estados posibles
     // 0 - retirado
-    // 2 - Vencida
-    // 3 - libro disponible confirmar prestamo?
+    // 1- Activo
+    // 2 - libro disponible confirmar prestamo?
+    // 3 - Vencida
     public boolean actualizarEstadoReserva(int idReserva, int nuevoEstado) throws SQLException {
         // Validación básica
         if (idReserva <= 0) {
@@ -251,6 +173,123 @@ public class ReservaDAO extends BaseDAO {
         }
     }
 
+    //ACTUALIZAR posiciones en cola
+    public void actualizarPosicionesCola(int idLibro) throws SQLException {
+        String sqlSelect = """
+        SELECT id 
+        FROM Reserva 
+        WHERE idLibro = ? 
+          AND estadoReserva IN (1, 2)
+        ORDER BY fechaReserva ASC
+    """;
+
+        String sqlUpdate = "UPDATE Reserva SET posicionCola = ? WHERE id = ?";
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement psSelect = con.prepareStatement(sqlSelect);
+             PreparedStatement psUpdate = con.prepareStatement(sqlUpdate)) {
+
+            psSelect.setInt(1, idLibro);
+            try (ResultSet rs = psSelect.executeQuery()) {
+                int pos = 1;
+                while (rs.next()) {
+                    psUpdate.setInt(1, pos++);
+                    psUpdate.setInt(2, rs.getInt("id"));
+                    psUpdate.addBatch();
+                }
+                psUpdate.executeBatch();
+            }
+
+            auditar("Reservas", "ActualizarPosiciones",
+                    "Se reordenaron las posiciones de cola para libro ID: " + idLibro);
+        }
+    }
+
+    // ACTUALIZAR Reserva
+    public boolean actualizar(Reserva r) throws SQLException {
+        if (r == null || r.getId() == null) {
+            JOptionPane.showMessageDialog(null, "Reserva inválida para actualizar.", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        String sql = "UPDATE Reserva SET idCliente=?, idLibro=?, fechaReserva=?, estadoReserva=?, posicionCola=? WHERE id=?";
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, r.getIdCliente());
+            ps.setInt(2, r.getIdLibro());
+            ps.setDate(3, new java.sql.Date(r.getFechaReserva().getTime()));
+            ps.setInt(4, r.getEstadoReserva());
+            ps.setInt(5, r.getPosicionCola());
+            ps.setInt(6, r.getId());
+
+            boolean actualizado = ps.executeUpdate() > 0;
+            if (actualizado)
+            {
+                JOptionPane.showMessageDialog(null, "Reserva actualizada correctamente.");
+                //Registo en auditoria
+                auditar("Reservas", "ActualizaReserva",
+                        "Se actualizo la reserva con ID: " + r.getId());
+            }
+            return actualizado;
+        }
+    }
+    //Calcular posición en cola desde SQL (solo reservas activas en cola para ese libro)
+    public int calcularPosicionCola(int idLibro) throws SQLException {
+        String sql = """
+        SELECT COUNT(*) AS total
+        FROM Reserva
+        WHERE idLibro = ? AND estadoReserva IN (1, 2)
+    """;
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idLibro);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total") + 1; // la nueva será la siguiente
+                }
+            }
+        }
+        return 1; // si no hay reservas previas, será la primera
+    }
+    // ELIMINACIÓN LÓGICA: cambia estadoReserva a 0
+    public boolean eliminar(int id) throws SQLException {
+
+        String sql = "UPDATE Reserva SET estadoReserva=0 WHERE id=?";
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            boolean desactivado = ps.executeUpdate() > 0;
+            if (desactivado)
+            {
+                //Registo en auditoria
+                auditar("Reservas", "DesactivarReserva",
+                        "Se retiro la reserva con ID: " + id);
+                JOptionPane.showMessageDialog(null, "Reserva retirada correctamente.");
+            }
+            return desactivado;
+        }
+    }
+
+    // LISTAR todas las reservas
+    public List<Reserva> listar() throws SQLException {
+        List<Reserva> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Reserva ORDER BY id DESC";
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(mapReserva(rs));
+            }
+        }
+        //Registo en auditoria
+        auditar("Reservas", "ListarReserva",
+                "Se listaron todas las reservas");
+        return lista;
+    }
     // HELPER: mapear ResultSet a Reserva
     private Reserva mapReserva(ResultSet rs) throws SQLException {
         return new Reserva(
@@ -262,4 +301,45 @@ public class ReservaDAO extends BaseDAO {
                 rs.getInt("posicionCola")
         );
     }
+
+
+
+    /*// BUSCAR por ID
+    public Reserva buscarPorId(int id) throws SQLException {
+        String sql = "SELECT * FROM Reserva WHERE id=?";
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next())
+                {
+                    //Registo en auditoria
+                    auditar("Reservas", "ListarReserva",
+                            "Se busco la reserva ID: " + id );
+                    return mapReserva(rs);
+                }
+            }
+        }
+        return null;
+    }*/
+    /*//ACTUALIZAR reservas vencidas (más de 24h en estado 2)
+    public void actualizarReservasVencidas() throws SQLException {
+        String sql = """
+            UPDATE Reserva
+            SET estadoReserva = 3
+            WHERE estadoReserva = 2
+              AND DATEDIFF(HOUR, fechaReserva, GETDATE()) >= 24
+        """;
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                auditar("Reservas", "ActualizarVencidas",
+                        "Se actualizaron " + filas + " reservas vencidas");
+            }
+        }
+    }*/
+
 }

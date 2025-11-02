@@ -15,7 +15,7 @@ import java.util.List;
 
 public class PrestamosForm extends JFrame {
 
-    private JPanel panelPrincipal;
+    public JPanel panelPrincipal;
     private JComboBox<Cliente> cbCliente;
     private JComboBox<Ejemplar> cbEjemplar;
     private JButton btnGuardar;
