@@ -71,6 +71,7 @@ public class MainMenuForm {
             btnAdquisiciones.setEnabled(false);
             btnInventario.setEnabled(false);
             btnReporteria.setEnabled(false);
+            btnAuditoria.setEnabled(true);
         }
 
         // ✅ Habilitar botón portal cliente SOLO si es CLIENTE o ADMIN
