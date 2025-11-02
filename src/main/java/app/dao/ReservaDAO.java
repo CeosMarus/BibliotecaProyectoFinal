@@ -122,6 +122,58 @@ public class ReservaDAO extends BaseDAO {
                 "Se listaron reservas con información de cliente y libro");
         return lista;
     }
+    // LISTAR reservas filtradas por cliente con datos del libro
+    public List<Object[]> listarReservasPorCliente(int idCliente) throws SQLException {
+        List<Object[]> lista = new ArrayList<>();
+
+        String sql = """
+        SELECT 
+            r.id, 
+            c.nombre AS cliente, 
+            c.nit, 
+            l.titulo AS libro, 
+            r.fechaReserva, 
+            CASE r.estadoReserva
+                WHEN 0 THEN 'Retirada'
+                WHEN 1 THEN 'Activo, en cola'
+                WHEN 2 THEN 'Ejemplar Disponible'
+                WHEN 3 THEN 'Vencida'
+                ELSE 'Desconocido'
+            END AS estadoReservaNombre,
+            r.posicionCola
+        FROM Reserva r
+        JOIN Cliente c ON r.idCliente = c.id
+        JOIN Libro l ON r.idLibro = l.id
+        WHERE r.idCliente = ?
+          AND r.estadoReserva != 0
+        ORDER BY r.fechaReserva DESC
+    """;
+
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, idCliente);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(new Object[]{
+                            rs.getInt("id"),
+                            rs.getString("cliente"),
+                            rs.getString("nit"),
+                            rs.getString("libro"),
+                            rs.getDate("fechaReserva"),
+                            rs.getString("estadoReservaNombre"),
+                            rs.getInt("posicionCola")
+                    });
+                }
+            }
+        }
+
+        auditar("Reservas", "ListarPorCliente",
+                "Se listaron reservas del cliente con ID: " + idCliente);
+
+        return lista;
+    }
 
     //Actualizar estado de reserva
     //Estados posibles

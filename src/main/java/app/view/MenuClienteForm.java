@@ -1,9 +1,6 @@
 package app.view;
 
 import javax.swing.*;
-import java.awt.*;
-import app.core.Sesion;
-import java.util.List;
 
 public class MenuClienteForm extends JFrame {
 
@@ -11,6 +8,7 @@ public class MenuClienteForm extends JFrame {
     private JButton btnMisPrestamos;
     private JButton btnMisMultas;
     private JButton btnSalir;
+    private JButton btnMisReservas;
 
     public MenuClienteForm() {
         setTitle("Menú Cliente");
@@ -31,6 +29,12 @@ public class MenuClienteForm extends JFrame {
             f.setVisible(true);
             setVisible(false);
             //dispose();
+        });
+
+        btnMisReservas.addActionListener(e -> {
+            JFrame f = new MisReservas();
+            f.setVisible(true);
+            setVisible(false);
         });
 
         btnSalir.addActionListener(e -> CerrarVentana());
