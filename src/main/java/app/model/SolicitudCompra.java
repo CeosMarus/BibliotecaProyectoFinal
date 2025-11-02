@@ -4,21 +4,28 @@ import java.util.Date;
 
 public class SolicitudCompra {
 
-    // 🧾 Atributos
-    private Integer id;          // null al insertar (autogenerado)
+    private Integer id;
     private Date fecha;
-    private int idUsuario;       // FK → Usuario.id
-    private int idLibro;         // FK → Libro.id
-    private int cantidad;
-    private double costoUnitario;
-    private int estado;          // 1: Pendiente/Aprobada/Rechazada, 0: Eliminado (lógica)
+    private Integer idUsuario;
+    private Integer idLibro;
+    private Integer cantidad;
+    private Double costoUnitario;
+    private Integer estado; // 1=Pendiente, 2=Aprobada, 3=Rechazada, 0=Eliminada
 
-    // 🏗️ Constructor vacío
-    public SolicitudCompra() {
+    /** ✅ Constructor para insertar nuevas solicitudes */
+    public SolicitudCompra(Date fecha, Integer idUsuario, Integer idLibro,
+                           Integer cantidad, Double costoUnitario, Integer estado) {
+        this.fecha = fecha;
+        this.idUsuario = idUsuario;
+        this.idLibro = idLibro;
+        this.cantidad = cantidad;
+        this.costoUnitario = costoUnitario;
+        this.estado = estado;
     }
 
-    // 🏗️ Constructor completo (con id)
-    public SolicitudCompra(Integer id, Date fecha, int idUsuario, int idLibro, int cantidad, double costoUnitario, int estado) {
+    /** ✅ Constructor para obtener desde BD */
+    public SolicitudCompra(Integer id, Date fecha, Integer idUsuario, Integer idLibro,
+                           Integer cantidad, Double costoUnitario, Integer estado) {
         this.id = id;
         this.fecha = fecha;
         this.idUsuario = idUsuario;
@@ -28,79 +35,28 @@ public class SolicitudCompra {
         this.estado = estado;
     }
 
-    // 🏗️ Constructor sin id (para inserciones nuevas)
-    public SolicitudCompra(Date fecha, int idUsuario, int idLibro, int cantidad, double costoUnitario, int estado) {
-        this(null, fecha, idUsuario, idLibro, cantidad, costoUnitario, estado);
+    // ===== ✅ Getters =====
+    public Integer getId() { return id; }
+    public Date getFecha() { return fecha; }
+    public Integer getIdUsuario() { return idUsuario; }
+    public Integer getIdLibro() { return idLibro; }
+    public Integer getCantidad() { return cantidad; }
+    public Double getCostoUnitario() { return costoUnitario; }
+    public Integer getEstado() { return estado; }
+
+    // ===== ✅ Estados legibles =====
+    public String getEstadoTexto() {
+        return switch (estado) {
+            case 1 -> "Pendiente";
+            case 2 -> "Aprobada";
+            case 3 -> "Rechazada";
+            default -> "Eliminada";
+        };
     }
 
-    // 🧭 Getters y Setters
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Date getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
-    }
-
-    public int getIdUsuario() {
-        return idUsuario;
-    }
-
-    public void setIdUsuario(int idUsuario) {
-        this.idUsuario = idUsuario;
-    }
-
-    public int getIdLibro() {
-        return idLibro;
-    }
-
-    public void setIdLibro(int idLibro) {
-        this.idLibro = idLibro;
-    }
-
-    public int getCantidad() {
-        return cantidad;
-    }
-
-    public void setCantidad(int cantidad) {
-        this.cantidad = cantidad;
-    }
-
-    public double getCostoUnitario() {
-        return costoUnitario;
-    }
-
-    public void setCostoUnitario(double costoUnitario) {
-        this.costoUnitario = costoUnitario;
-    }
-
-    public int getEstado() {
-        return estado;
-    }
-
-    public void setEstado(int estado) {
-        this.estado = estado;
-    }
-
-    // 🧩 Representación útil (para depuración o vistas)
+    // ✅ Para combos si deseas mostrar en UI
     @Override
     public String toString() {
-        return "SolicitudCompra{" +
-                "id=" + id +
-                ", fecha=" + fecha +
-                ", idUsuario=" + idUsuario +
-                ", idLibro=" + idLibro +
-                ", cantidad=" + cantidad +
-                ", costoUnitario=" + costoUnitario +
-                ", estado=" + estado +
-                '}';
+        return "Solicitud #" + id + " - " + getEstadoTexto();
     }
 }

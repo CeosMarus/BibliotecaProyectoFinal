@@ -1,7 +1,8 @@
 package app.dao;
 
+import app.db.Conexion;
 import app.model.CompraLibro;
-import app.db.Conexion; // ✅ Usar la clase real de conexión
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,148 +15,187 @@ public class CompraLibroDAO extends BaseDAO {
         try {
             conn = Conexion.getConnection();
         } catch (SQLException e) {
-            System.err.println("❌ Error al obtener la conexión: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    // Insertar nuevo registro
+    // ============================================================
+    // 🔹 INSERTAR COMPRA (solo si solicitud está aprobada)
+    // ============================================================
     public boolean insertar(CompraLibro compra) {
-        String sql = "INSERT INTO CompraLibro (idSolicitud, proveedor, costoTotal, fechaRecepcion, estado) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, compra.getIdSolicitud());
-            ps.setString(2, compra.getProveedor());
-            ps.setDouble(3, compra.getCostoTotal());
-            if (compra.getFechaRecepcion() != null) {
-                ps.setDate(4, new java.sql.Date(compra.getFechaRecepcion().getTime()));
-            } else {
-                ps.setNull(4, Types.DATE);
+        try {
+            conn.setAutoCommit(false);
+
+            // 1. Validar que la solicitud esté aprobada (estado = 2)
+            String validarSql = "SELECT estado FROM SolicitudCompra WHERE id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(validarSql)) {
+                ps.setInt(1, compra.getIdSolicitud());
+                ResultSet rs = ps.executeQuery();
+
+                if (!rs.next() || rs.getInt("estado") != 2) {
+                    throw new SQLException("❌ La solicitud no está aprobada para compra.");
+                }
             }
-            ps.setInt(5, compra.getEstado());
-            int rows = ps.executeUpdate();
-            if (rows > 0) {
-                //Registar la accion en Auditoria
-                auditar("ComprasLibro", "NuevaCompra", "Se registro la compra de la solicitud: " + compra.getIdSolicitud());
-                return true;
+
+            // 2. Insertar compra
+            String sqlCompra = "INSERT INTO CompraLibro (idSolicitud, proveedor, costoTotal, fechaRecepcion, estado) VALUES (?, ?, ?, ?, ?)";
+
+            try (PreparedStatement ps = conn.prepareStatement(sqlCompra)) {
+                ps.setInt(1, compra.getIdSolicitud());
+                ps.setString(2, compra.getProveedor());
+                ps.setDouble(3, compra.getCostoTotal());
+                ps.setDate(4, compra.getFechaRecepcion() != null ? new java.sql.Date(compra.getFechaRecepcion().getTime()) : null);
+                ps.setInt(5, compra.getEstado());
+
+                ps.executeUpdate();
             }
-        } catch (SQLException e) {
-            System.err.println("❌ Error al insertar CompraLibro: " + e.getMessage());
+
+            // 3. Actualizar solicitud a "4 finalizada (comprada)"
+            String sqlUpdateSolicitud = "UPDATE SolicitudCompra SET estado = 4 WHERE id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sqlUpdateSolicitud)) {
+                ps.setInt(1, compra.getIdSolicitud());
+                ps.executeUpdate();
+            }
+
+            conn.commit();
+
+            auditar("CompraLibro", "RegistrarCompra", "Compra registrada para Solicitud ID: " + compra.getIdSolicitud());
+            return true;
+
+        } catch (Exception ex) {
+            try { conn.rollback(); } catch (SQLException ignored) {}
+            ex.printStackTrace();
             return false;
+        } finally {
+            try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
         }
-        return false;
     }
 
-    // Actualizar registro
+    // ============================================================
+    // 🔹 ACTUALIZAR COMPRA
+    // ============================================================
     public boolean actualizar(CompraLibro compra) {
-        String sql = "UPDATE CompraLibro SET idSolicitud = ?, proveedor = ?, costoTotal = ?, fechaRecepcion = ?, estado = ? WHERE id = ?";
+        String sql = "UPDATE CompraLibro SET proveedor=?, costoTotal=?, fechaRecepcion=?, estado=? WHERE id=?";
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, compra.getIdSolicitud());
-            ps.setString(2, compra.getProveedor());
-            ps.setDouble(3, compra.getCostoTotal());
-            if (compra.getFechaRecepcion() != null) {
-                ps.setDate(4, new java.sql.Date(compra.getFechaRecepcion().getTime()));
-            } else {
-                ps.setNull(4, Types.DATE);
-            }
-            ps.setInt(5, compra.getEstado());
-            ps.setInt(6, compra.getId());
+            ps.setString(1, compra.getProveedor());
+            ps.setDouble(2, compra.getCostoTotal());
+            ps.setDate(3, compra.getFechaRecepcion() != null ? new java.sql.Date(compra.getFechaRecepcion().getTime()) : null);
+            ps.setInt(4, compra.getEstado());
+            ps.setInt(5, compra.getId());
+
             int rows = ps.executeUpdate();
-            if (rows > 0)
-            {
-                //Registar la accion en Auditoria
-                auditar("ComprasLibro", "ActualizarRegistro", "Se actualizo la compra con ID: " + compra.getId());
+
+            if (rows > 0) {
+                auditar("CompraLibro", "ActualizarCompra", "Compra ID: " + compra.getId());
                 return true;
             }
-        } catch (SQLException e) {
-            System.err.println("❌ Error al actualizar CompraLibro: " + e.getMessage());
-            return false;
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
         return false;
     }
 
-    // Listar registros activos
+    // ============================================================
+    // 🔹 LISTAR COMPRAS ACTIVAS
+    // ============================================================
     public List<CompraLibro> listarActivos() {
         List<CompraLibro> lista = new ArrayList<>();
-        String sql = "SELECT * FROM CompraLibro WHERE estado = 1";
+        String sql = "SELECT * FROM CompraLibro WHERE estado = 1 ORDER BY id DESC";
+
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
-                CompraLibro compra = new CompraLibro(
-                        rs.getInt("id"),
-                        rs.getInt("idSolicitud"),
-                        rs.getString("proveedor"),
-                        rs.getDouble("costoTotal"),
-                        rs.getDate("fechaRecepcion"),
-                        rs.getInt("estado")
-                );
-                lista.add(compra);
+                lista.add(mapResultado(rs));
             }
-        } catch (SQLException e) {
-            System.err.println("❌ Error al listar CompraLibro: " + e.getMessage());
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
-        //Registar la accion en Auditoria
-        auditar("ComprasLibro", "ListarCompras", "Se listaron todas las compras activas");
+
+        auditar("CompraLibro", "ListarCompras", "Listado de compras activas");
         return lista;
     }
 
-    // Obtener un registro por ID
+    // ============================================================
+    // 🔹 LISTAR SOLICITUDES APROBADAS (para mostrar en combo)
+    // ============================================================
+    public List<Integer> listarSolicitudesAprobadas() {
+        List<Integer> lista = new ArrayList<>();
+        String sql = "SELECT id FROM SolicitudCompra WHERE estado = 2 ORDER BY id ASC";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(rs.getInt("id"));
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return lista;
+    }
+
+    // ============================================================
+    // 🔹 OBTENER COMPRA POR ID
+    // ============================================================
     public CompraLibro obtenerPorId(int id) {
         String sql = "SELECT * FROM CompraLibro WHERE id = ?";
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    //Registar la accion en Auditoria
-                    auditar("ComprasLibro", "ListarCompras", "Se listo la compra con ID: " + id);
-                    return new CompraLibro(
-                            rs.getInt("id"),
-                            rs.getInt("idSolicitud"),
-                            rs.getString("proveedor"),
-                            rs.getDouble("costoTotal"),
-                            rs.getDate("fechaRecepcion"),
-                            rs.getInt("estado")
-                    );
+                    auditar("CompraLibro", "BuscarCompra", "Compra ID: " + id);
+                    return mapResultado(rs);
                 }
             }
-        } catch (SQLException e) {
-            System.err.println("❌ Error al obtener CompraLibro: " + e.getMessage());
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
+
         return null;
     }
-    // CAMBIAR ESTADO (activar/inactivar)
-    public boolean cambiarEstado(int id, int nuevoEstado) {
-        String sql = "UPDATE CompraLibro SET estado=? WHERE id=?";
-        try (Connection con = Conexion.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, nuevoEstado);
-            ps.setInt(2, id);
-            int filas =  ps.executeUpdate();
-            if (filas > 0) {
-                //Registar la accion en Auditoria
-                auditar("ComprasLibro", "CambioEstadoCompra", "La compra ID: " + id + " cambio a estado: " + nuevoEstado);
+
+    // ============================================================
+    // 🔹 ELIMINACIÓN LÓGICA
+    // ============================================================
+    public boolean eliminarLogico(int id) {
+        String sql = "UPDATE CompraLibro SET estado = 0 WHERE id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                auditar("CompraLibro", "EliminarCompra", "Compra ID: " + id);
                 return true;
             }
-        } catch (SQLException e) {
-            System.err.println("Error al cambiar estado del cliente: " + e.getMessage());
-            return false;
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
+
         return false;
     }
 
-    // Eliminación lógica
-    public boolean eliminarLogico(int id) {
-        String sql = "UPDATE CompraLibro SET estado = 0 WHERE id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            int rows = ps.executeUpdate();
-            if (rows > 0) {
-                //Registar la accion en Auditoria
-                auditar("ComprasLibro", "EliminarCompra", "Se elimino compra con ID: " + id);
-                return true;
-            }
-        } catch (SQLException e) {
-            System.err.println("❌ Error al eliminar CompraLibro: " + e.getMessage());
-            return false;
-        }
-        return false;
+    // ============================================================
+    // 🔹 MAP RESULTSET → OBJETO
+    // ============================================================
+    private CompraLibro mapResultado(ResultSet rs) throws SQLException {
+        return new CompraLibro(
+                rs.getInt("id"),
+                rs.getInt("idSolicitud"),
+                rs.getString("proveedor"),
+                rs.getDouble("costoTotal"),
+                rs.getDate("fechaRecepcion"),
+                rs.getInt("estado")
+        );
     }
 }

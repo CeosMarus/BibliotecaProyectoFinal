@@ -1,7 +1,8 @@
 package app.dao;
 
-import app.model.SolicitudCompra;
 import app.db.Conexion;
+import app.model.SolicitudCompra;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,123 +19,201 @@ public class SolicitudCompraDAO extends BaseDAO {
         }
     }
 
-    // 🟢 Listar todas las solicitudes activas
+    // ============================================================
+    // 🔹 INSERTAR NUEVA SOLICITUD (estado = 1 pendiente)
+    // ============================================================
+    public boolean insertar(SolicitudCompra s) {
+        String sql = "INSERT INTO SolicitudCompra (fecha, idUsuario, idLibro, cantidad, costoUnitario, estado) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDate(1, new java.sql.Date(s.getFecha().getTime()));
+            ps.setInt(2, s.getIdUsuario());
+            ps.setInt(3, s.getIdLibro());
+            ps.setInt(4, s.getCantidad());
+            ps.setBigDecimal(5, new java.math.BigDecimal(s.getCostoUnitario()));
+            ps.setInt(6, s.getEstado());
+
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                auditar("SolicitudCompra", "CrearSolicitud",
+                        "Nueva solicitud de compra. Libro ID: " + s.getIdLibro());
+                return true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return false;
+    }
+
+    // ============================================================
+    // 🔹 LISTAR TODAS LAS SOLICITUDES
+    // ============================================================
     public List<SolicitudCompra> listar() {
         List<SolicitudCompra> lista = new ArrayList<>();
-        String sql = "SELECT * FROM SolicitudCompra WHERE estado <> 1"; // Sólo activas
+
+        String sql = "SELECT * FROM SolicitudCompra WHERE estado <> 0 ORDER BY id DESC";
+
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                SolicitudCompra solicitud = new SolicitudCompra(
-                        rs.getInt("id"),
-                        rs.getDate("fecha"),
-                        rs.getInt("idUsuario"),
-                        rs.getInt("idLibro"),
-                        rs.getInt("cantidad"),
-                        rs.getBigDecimal("costoUnitario").doubleValue(),
-                        rs.getInt("estado")
-                );
-                lista.add(solicitud);
+                lista.add(mapResultado(rs));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
-        //Registo en auditoria
-        auditar("SolicitudesCompra", "ListarSolicitud",
-                "Se listo las solicitudes de compra activas");
+
+        auditar("SolicitudCompra", "ListarSolicitudes", "Se listaron solicitudes activas");
         return lista;
     }
 
-    // 🟢 Obtener una solicitud por ID
+    // ============================================================
+    // 🔹 LISTAR SÓLO SOLICITUDES PENDIENTES (estado = 1)
+    // ============================================================
+    public List<SolicitudCompra> listarPendientes() {
+        List<SolicitudCompra> lista = new ArrayList<>();
+        String sql = "SELECT * FROM SolicitudCompra WHERE estado = 1 ORDER BY id ASC";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(mapResultado(rs));
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        auditar("SolicitudCompra", "ListarPendientes", "Se listaron solicitudes pendientes");
+        return lista;
+    }
+    // ============================================================
+// 🔹 LISTAR SÓLO SOLICITUDES APROBADAS (estado = 2)
+// ============================================================
+    public List<SolicitudCompra> listarAprobadas() {
+        List<SolicitudCompra> lista = new ArrayList<>();
+        String sql = "SELECT * FROM SolicitudCompra WHERE estado = 2 ORDER BY id ASC";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(mapResultado(rs));
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        auditar("SolicitudCompra", "ListarAprobadas", "Se listaron solicitudes aprobadas");
+        return lista;
+    }
+
+    // ============================================================
+// 🔹 ACTUALIZAR ESTADO (alias para cambiarEstado)
+// ============================================================
+    public boolean actualizarEstado(int id, int nuevoEstado) {
+        return cambiarEstado(id, nuevoEstado);
+    }
+
+    // ============================================================
+    // 🔹 OBTENER POR ID
+    // ============================================================
     public SolicitudCompra obtenerPorId(int id) {
-        String sql = "SELECT * FROM SolicitudCompra WHERE id = ? AND estado <> 1";
+        String sql = "SELECT * FROM SolicitudCompra WHERE id = ?";
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    //Registo en auditoria
-                    auditar("SolicitudesCompra", "ListarSolicitud",
-                            "Se listo las solicitudes de compra con ID = " + id);
-                    return new SolicitudCompra(
-                            rs.getInt("id"),
-                            rs.getDate("fecha"),
-                            rs.getInt("idUsuario"),
-                            rs.getInt("idLibro"),
-                            rs.getInt("cantidad"),
-                            rs.getBigDecimal("costoUnitario").doubleValue(),
-                            rs.getInt("estado")
-                    );
+                    auditar("SolicitudCompra", "BuscarPorID", "Solicitud ID: " + id);
+                    return mapResultado(rs);
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
+
         return null;
     }
 
-    // 🟢 Insertar nueva solicitud
-    public boolean insertar(SolicitudCompra solicitud) {
-        String sql = "INSERT INTO SolicitudCompra (fecha, idUsuario, idLibro, cantidad, costoUnitario, estado) VALUES (?, ?, ?, ?, ?, ?)";
+    // ============================================================
+    // 🔹 ACTUALIZAR SOLICITUD
+    // ============================================================
+    public boolean actualizar(SolicitudCompra s) {
+        String sql = "UPDATE SolicitudCompra SET fecha=?, idUsuario=?, idLibro=?, cantidad=?, costoUnitario=?, estado=? WHERE id=?";
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setDate(1, new java.sql.Date(solicitud.getFecha().getTime()));
-            ps.setInt(2, solicitud.getIdUsuario());
-            ps.setInt(3, solicitud.getIdLibro());
-            ps.setInt(4, solicitud.getCantidad());
-            ps.setBigDecimal(5, new java.math.BigDecimal(solicitud.getCostoUnitario()));
-            ps.setInt(6, solicitud.getEstado());
-            int filas = ps.executeUpdate();
-            if (filas > 0) {
-                //Registo en auditoria
-                auditar("SolicitudesCompra", "NuevaSolicitud",
-                        "Se creo una nueva solicitud de compra para el libro ID: " + solicitud.getIdLibro());
+
+            ps.setDate(1, new java.sql.Date(s.getFecha().getTime()));
+            ps.setInt(2, s.getIdUsuario());
+            ps.setInt(3, s.getIdLibro());
+            ps.setInt(4, s.getCantidad());
+            ps.setBigDecimal(5, new java.math.BigDecimal(s.getCostoUnitario()));
+            ps.setInt(6, s.getEstado());
+            ps.setInt(7, s.getId());
+
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                auditar("SolicitudCompra", "ActualizarSolicitud", "Solicitud ID: " + s.getId());
                 return true;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
+
         return false;
     }
 
-    // 🟢 Actualizar solicitud existente
-    public boolean actualizar(SolicitudCompra solicitud) {
-        String sql = "UPDATE SolicitudCompra SET fecha = ?, idUsuario = ?, idLibro = ?, cantidad = ?, costoUnitario = ?, estado = ? WHERE id = ?";
+    // ============================================================
+    // 🔹 CAMBIAR ESTADO (1 pendiente, 2 aprobada, 3 rechazada, 0 eliminado)
+    // ============================================================
+    public boolean cambiarEstado(int id, int nuevoEstado) {
+        String sql = "UPDATE SolicitudCompra SET estado=? WHERE id=?";
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setDate(1, new java.sql.Date(solicitud.getFecha().getTime()));
-            ps.setInt(2, solicitud.getIdUsuario());
-            ps.setInt(3, solicitud.getIdLibro());
-            ps.setInt(4, solicitud.getCantidad());
-            ps.setBigDecimal(5, new java.math.BigDecimal(solicitud.getCostoUnitario()));
-            ps.setInt(6, solicitud.getEstado());
-            ps.setInt(7, solicitud.getId());
-            int filas = ps.executeUpdate();
-            if (filas > 0) {
-                //Registo en auditoria
-                auditar("SolicitudesCompra", "ActualizarSolicitud",
-                        "Se actualizo la solicitud de compra ID: " + solicitud.getId());
+            ps.setInt(1, nuevoEstado);
+            ps.setInt(2, id);
+
+            int rows = ps.executeUpdate();
+
+            if (rows > 0) {
+                auditar("SolicitudCompra", "CambiarEstado",
+                        "Solicitud ID: " + id + " -> Estado: " + nuevoEstado);
                 return true;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
+
         return false;
     }
 
-    // 🟢 Eliminación lógica de una solicitud (estado = 0)
+    // ============================================================
+    // 🔹 ELIMINACIÓN LÓGICA
+    // ============================================================
     public boolean eliminar(int id) {
-        String sql = "UPDATE SolicitudCompra SET estado = 0 WHERE id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            int filas = ps.executeUpdate();
-            if (filas > 0) {
-                //Registo en auditoria
-                auditar("SolicitudesCompra", "DesactivarSolicitud",
-                        "Se desactivo la solicitud de compra ID: " + id);
-                return true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return cambiarEstado(id, 0);
+    }
+
+    // ============================================================
+    // 🔹 MAPEAR RESULTADO A OBJETO
+    // ============================================================
+    private SolicitudCompra mapResultado(ResultSet rs) throws SQLException {
+        return new SolicitudCompra(
+                rs.getInt("id"),
+                rs.getDate("fecha"),
+                rs.getInt("idUsuario"),
+                rs.getInt("idLibro"),
+                rs.getInt("cantidad"),
+                rs.getBigDecimal("costoUnitario").doubleValue(),
+                rs.getInt("estado")
+        );
     }
 }

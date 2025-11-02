@@ -47,12 +47,15 @@ public class SolicitudCompraForm {
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
     public SolicitudCompraForm() {
-        panelPrincipal.setPreferredSize(new Dimension(1050, 400));
+
+        panelPrincipal.setPreferredSize(new Dimension(1000, 450));
         tbSolicitudes.setModel(model);
         tbSolicitudes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        cboEstado.addItem("1 - Activo");
-        cboEstado.addItem("0 - Inactivo");
+        // Estados válidos
+        cboEstado.addItem("1 - Pendiente");
+        cboEstado.addItem("2 - Aprobada");
+        cboEstado.addItem("3 - Rechazada");
 
         cargarUsuariosEnCombo();
         cargarLibrosEnCombo();
@@ -69,32 +72,30 @@ public class SolicitudCompraForm {
         cargarTabla();
     }
 
-    /** 🔹 Cargar SOLO clientes activos en combo */
+    /** ✅ Cargar SOLO usuarios no cliente (Admin/Bibliotecario) */
     private void cargarUsuariosEnCombo() {
         try {
             cboUsuario.removeAllItems();
-            List<Usuario> clientes = usuarioDAO.listarClientes(); // Nuevo método en UsuarioDAO
-            for (Usuario u : clientes) {
-                cboUsuario.addItem(u);
+            List<Usuario> lista = usuarioDAO.listar();
+
+            // Filtramos solo ADMIN y BIBLIOTECARIO
+            for (Usuario u : lista) {
+                if (u.getRol().equalsIgnoreCase("ADMIN") ||
+                        u.getRol().equalsIgnoreCase("BIBLIOTECARIO")) {
+                    cboUsuario.addItem(u);
+                }
             }
 
-            if (clientes.isEmpty()) {
-                JOptionPane.showMessageDialog(panelPrincipal,
-                        "No hay clientes registrados o activos.",
-                        "Información",
-                        JOptionPane.INFORMATION_MESSAGE);
+            if (cboUsuario.getItemCount() == 0) {
+                JOptionPane.showMessageDialog(null, "No hay usuarios administrativos registrados.");
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(panelPrincipal,
-                    "Error al cargar los clientes: " + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Error al cargar usuarios: " + e.getMessage());
         }
     }
 
-    /** 🔹 Cargar libros activos en combo */
+    /** ✅ Cargar libros activos */
     private void cargarLibrosEnCombo() {
         try {
             cboLibro.removeAllItems();
@@ -103,235 +104,188 @@ public class SolicitudCompraForm {
                 cboLibro.addItem(l);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error al cargar libros: " + e.getMessage());
         }
     }
 
-    /** 🔹 Guardar nueva solicitud */
+    /** ✅ Guardar solicitud */
     private void onGuardar() {
         try {
-            Date fecha = parseFecha(txtFecha.getText().trim());
+            Date fecha = parseFecha(txtFecha.getText());
             Usuario usuario = (Usuario) cboUsuario.getSelectedItem();
             Libro libro = (Libro) cboLibro.getSelectedItem();
-            int cantidad = Integer.parseInt(txtCantidad.getText().trim());
-            double costo = Double.parseDouble(txtCostoUnitario.getText().trim());
-            int estado = cboEstado.getSelectedIndex() == 0 ? 1 : 0;
 
             if (usuario == null || libro == null) {
-                mostrarError("Debe seleccionar un usuario y un libro.");
+                JOptionPane.showMessageDialog(null, "Debe seleccionar un usuario y un libro.");
                 return;
             }
 
-            if (cantidad <= 0 || costo <= 0) {
-                mostrarError("La cantidad y el costo deben ser mayores que 0.");
-                return;
-            }
+            int cantidad = Integer.parseInt(txtCantidad.getText());
+            double costoUnitario = Double.parseDouble(txtCostoUnitario.getText());
+            int estado = obtenerEstado();
 
-            SolicitudCompra nueva = new SolicitudCompra(fecha, usuario.getId(), libro.getId(), cantidad, costo, estado);
-            boolean ok = solicitudDAO.insertar(nueva);
+            SolicitudCompra solicitud = new SolicitudCompra(
+                    fecha, usuario.getId(), libro.getId(), cantidad, costoUnitario, estado
+            );
 
-            if (ok) {
-                mostrarInfo("Solicitud registrada correctamente.");
+            if (solicitudDAO.insertar(solicitud)) {
+                JOptionPane.showMessageDialog(null, "✅ Solicitud creada correctamente.");
                 limpiarFormulario();
                 cargarTabla();
             } else {
-                mostrarError("No se pudo registrar la solicitud.");
+                JOptionPane.showMessageDialog(null, "❌ Error al guardar.");
             }
 
-        } catch (NumberFormatException ex) {
-            mostrarError("Verifique que los campos numéricos sean válidos.");
-        } catch (ParseException ex) {
-            mostrarError("Formato de fecha inválido. Use yyyy-MM-dd.");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
         }
     }
 
-    /** 🔹 Actualizar solicitud existente */
+    /** ✅ Actualizar */
     private void onActualizar() {
         if (selectedId == null) {
-            mostrarError("Seleccione una solicitud para actualizar.");
+            JOptionPane.showMessageDialog(null, "Seleccione una solicitud.");
             return;
         }
 
         try {
-            Date fecha = parseFecha(txtFecha.getText().trim());
+            Date fecha = parseFecha(txtFecha.getText());
             Usuario usuario = (Usuario) cboUsuario.getSelectedItem();
             Libro libro = (Libro) cboLibro.getSelectedItem();
-            int cantidad = Integer.parseInt(txtCantidad.getText().trim());
-            double costo = Double.parseDouble(txtCostoUnitario.getText().trim());
-            int estado = cboEstado.getSelectedIndex() == 0 ? 1 : 0;
+            int cantidad = Integer.parseInt(txtCantidad.getText());
+            double costoUnitario = Double.parseDouble(txtCostoUnitario.getText());
+            int estado = obtenerEstado();
 
-            SolicitudCompra sc = new SolicitudCompra(selectedId, fecha, usuario.getId(), libro.getId(), cantidad, costo, estado);
-            boolean ok = solicitudDAO.actualizar(sc);
+            SolicitudCompra sc = new SolicitudCompra(
+                    selectedId, fecha, usuario.getId(), libro.getId(), cantidad, costoUnitario, estado
+            );
 
-            if (ok) {
-                mostrarInfo("Solicitud actualizada correctamente.");
+            if (solicitudDAO.actualizar(sc)) {
+                JOptionPane.showMessageDialog(null, "✅ Actualizado correctamente.");
                 cargarTabla();
-                seleccionarFilaPorId(selectedId);
             } else {
-                mostrarError("No se pudo actualizar la solicitud.");
+                JOptionPane.showMessageDialog(null, "❌ Error al actualizar.");
             }
 
-        } catch (NumberFormatException ex) {
-            mostrarError("Verifique los campos numéricos.");
-        } catch (ParseException ex) {
-            mostrarError("Formato de fecha inválido. Use yyyy-MM-dd.");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
         }
     }
 
-    /** 🔹 Eliminación lógica */
+    /** ✅ Eliminar (marcar estado 0) */
     private void onEliminar() {
         if (selectedId == null) {
-            mostrarError("Seleccione una solicitud para eliminar.");
+            JOptionPane.showMessageDialog(null, "Seleccione una solicitud.");
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(panelPrincipal,
-                "¿Está seguro de eliminar (desactivar) esta solicitud?",
-                "Confirmar eliminación",
-                JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(null,
+                "¿Desea eliminar esta solicitud?",
+                "Confirmación", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            boolean ok = solicitudDAO.eliminar(selectedId);
-            if (ok) {
-                mostrarInfo("Solicitud desactivada correctamente.");
+            if (solicitudDAO.cambiarEstado(selectedId, 0)) {
+                JOptionPane.showMessageDialog(null, "✅ Eliminada correctamente.");
                 limpiarFormulario();
                 cargarTabla();
-            } else {
-                mostrarError("No se pudo desactivar la solicitud.");
             }
         }
     }
 
-    /** 🔹 Selección de fila */
+    /** ✅ Llenar tabla */
+    private void cargarTabla() {
+        model.setRowCount(0);
+        List<SolicitudCompra> lista = solicitudDAO.listar();
+
+        for (SolicitudCompra s : lista) {
+            model.addRow(new Object[]{
+                    s.getId(),
+                    sdf.format(s.getFecha()),
+                    obtenerNombreUsuario(s.getIdUsuario()),
+                    obtenerTituloLibro(s.getIdLibro()),
+                    s.getCantidad(),
+                    s.getCostoUnitario(),
+                    s.getEstadoTexto()
+            });
+        }
+    }
+
+    /** ✅ Selección tabla */
     private void onTableSelection(ListSelectionEvent e) {
         if (e.getValueIsAdjusting()) return;
+
         int row = tbSolicitudes.getSelectedRow();
-        if (row == -1) {
-            selectedId = null;
-            return;
-        }
+        if (row == -1) return;
 
         selectedId = Integer.parseInt(model.getValueAt(row, 0).toString());
         txtFecha.setText(model.getValueAt(row, 1).toString());
         txtCantidad.setText(model.getValueAt(row, 4).toString());
         txtCostoUnitario.setText(model.getValueAt(row, 5).toString());
 
-        seleccionarUsuarioPorNombre(model.getValueAt(row, 2).toString());
-        seleccionarLibroPorTitulo(model.getValueAt(row, 3).toString());
-
-        String estadoTxt = model.getValueAt(row, 6).toString();
-        cboEstado.setSelectedIndex(estadoTxt.startsWith("1") ? 0 : 1);
+        seleccionarComboUsuario(model.getValueAt(row, 2).toString());
+        seleccionarComboLibro(model.getValueAt(row, 3).toString());
+        seleccionarEstado(model.getValueAt(row, 6).toString());
     }
 
-    /** 🔹 Cargar tabla */
-    private void cargarTabla() {
-        List<SolicitudCompra> lista = solicitudDAO.listar();
-        model.setRowCount(0);
-
-        for (SolicitudCompra s : lista) {
-            if (s.getEstado() != 0) {
-                String usuarioNombre = obtenerNombreUsuarioPorId(s.getIdUsuario());
-                String libroTitulo = obtenerTituloLibroPorId(s.getIdLibro());
-
-                model.addRow(new Object[]{
-                        s.getId(),
-                        sdf.format(s.getFecha()),
-                        usuarioNombre,
-                        libroTitulo,
-                        s.getCantidad(),
-                        s.getCostoUnitario(),
-                        s.getEstado() == 1 ? "1 - Activo" : "0 - Inactivo"
-                });
-            }
-        }
-    }
-
-    /** 🔹 Buscar nombres por ID — Solo clientes */
-    private String obtenerNombreUsuarioPorId(int id) {
+    /** ✅ Utilidades */
+    private String obtenerNombreUsuario(int id) {
         try {
-            List<Usuario> clientes = usuarioDAO.listarClientes();
-            for (Usuario u : clientes) {
+            for (Usuario u : usuarioDAO.listar())
                 if (u.getId() == id) return u.getNombre();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "Desconocido";
+        } catch (Exception ignored) {}
+        return "---";
     }
 
-    private String obtenerTituloLibroPorId(int id) {
+    private String obtenerTituloLibro(int id) {
         try {
-            for (Libro l : libroDAO.listar()) {
+            for (Libro l : libroDAO.listar())
                 if (l.getId() == id) return l.getTitulo();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "Desconocido";
+        } catch (Exception ignored) {}
+        return "---";
     }
 
-    /** 🔹 Seleccionar usuario/libro en combos */
-    private void seleccionarUsuarioPorNombre(String nombre) {
-        for (int i = 0; i < cboUsuario.getItemCount(); i++) {
-            Usuario u = cboUsuario.getItemAt(i);
-            if (u.getNombre().equalsIgnoreCase(nombre)) {
+    private void seleccionarComboUsuario(String nombre) {
+        for (int i = 0; i < cboUsuario.getItemCount(); i++)
+            if (cboUsuario.getItemAt(i).getNombre().equals(nombre))
                 cboUsuario.setSelectedIndex(i);
-                return;
-            }
-        }
     }
 
-    private void seleccionarLibroPorTitulo(String titulo) {
-        for (int i = 0; i < cboLibro.getItemCount(); i++) {
-            Libro l = cboLibro.getItemAt(i);
-            if (l.getTitulo().equalsIgnoreCase(titulo)) {
+    private void seleccionarComboLibro(String titulo) {
+        for (int i = 0; i < cboLibro.getItemCount(); i++)
+            if (cboLibro.getItemAt(i).getTitulo().equals(titulo))
                 cboLibro.setSelectedIndex(i);
-                return;
-            }
+    }
+
+    private void seleccionarEstado(String estadoTexto) {
+        switch (estadoTexto) {
+            case "Pendiente" -> cboEstado.setSelectedIndex(0);
+            case "Aprobada" -> cboEstado.setSelectedIndex(1);
+            case "Rechazada" -> cboEstado.setSelectedIndex(2);
         }
     }
 
-    /** 🔹 Limpieza y utilidades */
-    private void limpiarFormulario() {
-        txtFecha.setText("");
-        txtCantidad.setText("");
-        txtCostoUnitario.setText("");
-        if (cboUsuario.getItemCount() > 0) cboUsuario.setSelectedIndex(0);
-        if (cboLibro.getItemCount() > 0) cboLibro.setSelectedIndex(0);
-        cboEstado.setSelectedIndex(0);
-        tbSolicitudes.clearSelection();
-        selectedId = null;
-    }
-
-    private void seleccionarFilaPorId(Integer id) {
-        if (id == null) return;
-        for (int i = 0; i < model.getRowCount(); i++) {
-            Object val = model.getValueAt(i, 0);
-            if (val != null && Integer.parseInt(val.toString()) == id) {
-                tbSolicitudes.setRowSelectionInterval(i, i);
-                break;
-            }
-        }
-    }
-
-    private void onSalir() {
-        Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
-        if (window != null) window.dispose();
+    private int obtenerEstado() {
+        return cboEstado.getSelectedIndex() + 1;
     }
 
     private Date parseFecha(String texto) throws ParseException {
         return sdf.parse(texto);
     }
 
-    private void mostrarError(String msg) {
-        JOptionPane.showMessageDialog(panelPrincipal, msg, "Error", JOptionPane.ERROR_MESSAGE);
+    private void limpiarFormulario() {
+        txtFecha.setText("");
+        txtCantidad.setText("");
+        txtCostoUnitario.setText("");
+        tbSolicitudes.clearSelection();
+        selectedId = null;
     }
 
-    private void mostrarInfo(String msg) {
-        JOptionPane.showMessageDialog(panelPrincipal, msg, "Información", JOptionPane.INFORMATION_MESSAGE);
+    private void onSalir() {
+        Window w = SwingUtilities.getWindowAncestor(panelPrincipal);
+        if (w != null) w.dispose();
     }
 
-    /** 🔹 Main de prueba */
+    /** ✅ MAIN de pruebas */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame f = new JFrame("Gestión de Solicitudes de Compra");
@@ -341,9 +295,5 @@ public class SolicitudCompraForm {
             f.setLocationRelativeTo(null);
             f.setVisible(true);
         });
-    }
-
-    private void createUIComponents() {
-        // Personalización para IntelliJ GUI Designer
     }
 }

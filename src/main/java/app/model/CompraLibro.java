@@ -4,18 +4,15 @@ import java.util.Date;
 
 public class CompraLibro {
 
-    private int id;
-    private int idSolicitud;
-    private String proveedor;
-    private double costoTotal;
-    private Date fechaRecepcion;
-    private int estado; // 1 = activo, 0 = desactivado
+    private Integer id;             // PK
+    private Integer idSolicitud;    // FK de SolicitudCompra
+    private String proveedor;       // Nombre del proveedor
+    private Double costoTotal;      // Costo total de la compra
+    private Date fechaRecepcion;    // Fecha de recepción (puede ser null)
+    private Integer estado;         // 1 = Activo, 0 = Inactivo
 
-    // Constructor vacío
-    public CompraLibro() {}
-
-    // Constructor completo
-    public CompraLibro(int id, int idSolicitud, String proveedor, double costoTotal, Date fechaRecepcion, int estado) {
+    // Constructor completo (para carga desde BD)
+    public CompraLibro(Integer id, Integer idSolicitud, String proveedor, Double costoTotal, Date fechaRecepcion, Integer estado) {
         this.id = id;
         this.idSolicitud = idSolicitud;
         this.proveedor = proveedor;
@@ -24,20 +21,34 @@ public class CompraLibro {
         this.estado = estado;
     }
 
-    // Getters y Setters
-    public int getId() {
+    // Constructor para insertar nueva compra
+    public CompraLibro(Integer idSolicitud, String proveedor, Double costoTotal, Date fechaRecepcion, Integer estado) {
+        this.idSolicitud = idSolicitud;
+        this.proveedor = proveedor;
+        this.costoTotal = costoTotal;
+        this.fechaRecepcion = fechaRecepcion;
+        this.estado = estado;
+    }
+
+    // Constructor vacío por si se necesita
+    public CompraLibro() {}
+
+    // ==========================
+    // GETTERS & SETTERS
+    // ==========================
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getIdSolicitud() {
+    public Integer getIdSolicitud() {
         return idSolicitud;
     }
 
-    public void setIdSolicitud(int idSolicitud) {
+    public void setIdSolicitud(Integer idSolicitud) {
         this.idSolicitud = idSolicitud;
     }
 
@@ -49,11 +60,11 @@ public class CompraLibro {
         this.proveedor = proveedor;
     }
 
-    public double getCostoTotal() {
+    public Double getCostoTotal() {
         return costoTotal;
     }
 
-    public void setCostoTotal(double costoTotal) {
+    public void setCostoTotal(Double costoTotal) {
         this.costoTotal = costoTotal;
     }
 
@@ -65,24 +76,19 @@ public class CompraLibro {
         this.fechaRecepcion = fechaRecepcion;
     }
 
-    public int getEstado() {
+    public Integer getEstado() {
         return estado;
     }
 
-    public void setEstado(int estado) {
+    public void setEstado(Integer estado) {
         this.estado = estado;
     }
 
-    // metodo para informacion basica de lacompra
     @Override
     public String toString() {
-        return "CompraLibro{" +
-                "id=" + id +
-                ", idSolicitud=" + idSolicitud +
-                ", proveedor='" + proveedor + '\'' +
-                ", costoTotal=" + costoTotal +
-                ", fechaRecepcion=" + fechaRecepcion +
-                ", estado=" + estado +
-                '}';
+        return "Compra #" + id +
+                " | Solicitud " + idSolicitud +
+                " | Proveedor: " + proveedor +
+                " | Q" + costoTotal;
     }
 }
