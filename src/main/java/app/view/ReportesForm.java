@@ -409,6 +409,8 @@ public class ReportesForm {
             }
             workbook.close();
 
+            reportesDAO.registrarAuditoria( "ExportarExcel", "Se exportó un reporte a Excel.");
+
             JOptionPane.showMessageDialog(null, "Reporte exportado exitosamente a Excel.");
 
         } catch (Exception e) {
@@ -455,7 +457,7 @@ public class ReportesForm {
 
             document.add(table);
             document.close();
-
+            reportesDAO.registrarAuditoria("ExportarPDF", "Se exportó un reporte a PDF.");
             JOptionPane.showMessageDialog(null, "Reporte exportado exitosamente a PDF.");
 
         } catch (Exception e) {

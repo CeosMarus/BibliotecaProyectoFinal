@@ -364,6 +364,10 @@ public class ReportesDAO extends BaseDAO
 
         return lista;
     }
+    // En cada DAO donde quieras registrar manualmente desde la vista:
+    public void registrarAuditoria(String accion, String detalle) {
+        auditar(getClass().getSimpleName().replace("DAO",""), accion, detalle);
+    }
     public List<String> listarTitulos() throws SQLException {
         List<String> lista = new ArrayList<>();
         String sql = "SELECT DISTINCT titulo FROM Libro ORDER BY titulo";
