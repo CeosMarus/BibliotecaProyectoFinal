@@ -328,12 +328,100 @@ public class ReportesForm {
         cboCategoria.addItem("Adquisiciones");
     }
 
-    private void exportarExcel() {
-        JOptionPane.showMessageDialog(null, "Funcionalidad de exportar a Excel pendiente de implementación.");
+    private void exportarExcel()
+    {
+        try {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Guardar reporte como Excel");
+            chooser.setSelectedFile(new java.io.File("reporte.xlsx"));
+            int userSelection = chooser.showSaveDialog(panelPrincipal);
+
+            if (userSelection != JFileChooser.APPROVE_OPTION) return;
+
+            java.io.File file = chooser.getSelectedFile();
+
+            org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
+            org.apache.poi.xssf.usermodel.XSSFSheet sheet = workbook.createSheet("Reporte");
+
+            DefaultTableModel model = (DefaultTableModel) tblReporte.getModel();
+
+            // Encabezados
+            org.apache.poi.xssf.usermodel.XSSFRow headerRow = sheet.createRow(0);
+            for (int i = 0; i < model.getColumnCount(); i++) {
+                headerRow.createCell(i).setCellValue(model.getColumnName(i));
+            }
+
+            // Datos
+            for (int i = 0; i < model.getRowCount(); i++) {
+                org.apache.poi.xssf.usermodel.XSSFRow row = sheet.createRow(i + 1);
+                for (int j = 0; j < model.getColumnCount(); j++) {
+                    Object value = model.getValueAt(i, j);
+                    row.createCell(j).setCellValue(value != null ? value.toString() : "");
+                }
+            }
+
+            // Autoajustar columnas
+            for (int i = 0; i < model.getColumnCount(); i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            try (java.io.FileOutputStream out = new java.io.FileOutputStream(file)) {
+                workbook.write(out);
+            }
+            workbook.close();
+
+            JOptionPane.showMessageDialog(null, "Reporte exportado exitosamente a Excel.");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error al exportar a Excel: " + e.getMessage());
+        }
     }
 
-    private void exportarPDF() {
-        JOptionPane.showMessageDialog(null, "Funcionalidad de exportar a PDF pendiente de implementación.");
+    private void exportarPDF()
+    {
+        try {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Guardar reporte como PDF");
+            chooser.setSelectedFile(new java.io.File("reporte.pdf"));
+            int userSelection = chooser.showSaveDialog(panelPrincipal);
+
+            if (userSelection != JFileChooser.APPROVE_OPTION) return;
+
+            java.io.File file = chooser.getSelectedFile();
+
+            com.itextpdf.text.Document document = new com.itextpdf.text.Document();
+            com.itextpdf.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(file));
+            document.open();
+
+            DefaultTableModel model = (DefaultTableModel) tblReporte.getModel();
+
+            document.add(new com.itextpdf.text.Paragraph("Reporte generado - " + cboCategoria.getSelectedItem()));
+            document.add(new com.itextpdf.text.Paragraph("Fecha: " + new java.util.Date().toString()));
+            document.add(new com.itextpdf.text.Paragraph(" ")); // Espacio
+
+            com.itextpdf.text.pdf.PdfPTable table = new com.itextpdf.text.pdf.PdfPTable(model.getColumnCount());
+
+            // Encabezados
+            for (int i = 0; i < model.getColumnCount(); i++) {
+                table.addCell(new com.itextpdf.text.Phrase(model.getColumnName(i)));
+            }
+
+            // Datos
+            for (int i = 0; i < model.getRowCount(); i++) {
+                for (int j = 0; j < model.getColumnCount(); j++) {
+                    Object value = model.getValueAt(i, j);
+                    table.addCell(value != null ? value.toString() : "");
+                }
+            }
+
+            document.add(table);
+            document.close();
+
+            JOptionPane.showMessageDialog(null, "Reporte exportado exitosamente a PDF.");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error al exportar a PDF: " + e.getMessage());
+        }
     }
 
     //Launcher
