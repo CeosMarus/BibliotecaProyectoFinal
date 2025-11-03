@@ -49,7 +49,19 @@
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.5</version>
         </dependency>
+        <!-- OpenCV -->
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>opencv-platform</artifactId>
+            <version>4.11.0-1.5.12</version>
+        </dependency>
 
+        <!-- JavaCV (wrapper de OpenCV) -->
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv-platform</artifactId>
+            <version>1.5.12</version>
+        </dependency>
 
     </dependencies>
 
