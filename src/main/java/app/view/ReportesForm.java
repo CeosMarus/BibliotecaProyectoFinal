@@ -1,6 +1,7 @@
 package app.view;
 
 import app.dao.ReportesDAO;
+import app.core.Sesion;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -10,6 +11,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+
 
 public class ReportesForm {
     private JComboBox<String> cboCategoria;
@@ -317,15 +319,52 @@ public class ReportesForm {
     }
     private void cargarModulos()
     {
-        cboCategoria.removeAllItems();
-        cboCategoria.addItem("Catalogo");
-        cboCategoria.addItem("Prestamos");
-        cboCategoria.addItem("Top_Libros");
-        cboCategoria.addItem("Tasa_de_Rotacion");
-        cboCategoria.addItem("Multas_Recaudadas");
-        cboCategoria.addItem("Clientes_Morosos");
-        cboCategoria.addItem("Inventario");
-        cboCategoria.addItem("Adquisiciones");
+        if(Sesion.hasRole("ADMIN"))
+        {
+            cboCategoria.removeAllItems();
+            cboCategoria.addItem("Catalogo");
+            cboCategoria.addItem("Prestamos");
+            cboCategoria.addItem("Top_Libros");
+            cboCategoria.addItem("Tasa_de_Rotacion");
+            cboCategoria.addItem("Multas_Recaudadas");
+            cboCategoria.addItem("Clientes_Morosos");
+            cboCategoria.addItem("Inventario");
+            cboCategoria.addItem("Adquisiciones");
+        }
+        else if (Sesion.hasRole("Financiero"))
+        {
+            cboCategoria.removeAllItems();
+            cboCategoria.addItem("Multas_Recaudadas");
+            cboCategoria.addItem("Clientes_Morosos");
+            cboCategoria.addItem("Inventario");
+            cboCategoria.addItem("Adquisiciones");
+        }
+        else if (Sesion.hasRole("Bibliotecario"))
+        {
+            cboCategoria.removeAllItems();
+            cboCategoria.addItem("Catalogo");
+            cboCategoria.addItem("Prestamos");
+            cboCategoria.addItem("Top_Libros");
+            cboCategoria.addItem("Tasa_de_Rotacion");
+            cboCategoria.addItem("Inventario");
+            cboCategoria.addItem("Adquisiciones");
+        }
+        else
+        {
+            JOptionPane.showMessageDialog(null, "No hay usuario valido en sesion.");
+            //Se activa para fines de pruebas
+            cboCategoria.removeAllItems();
+            cboCategoria.addItem("Catalogo");
+            cboCategoria.addItem("Prestamos");
+            cboCategoria.addItem("Top_Libros");
+            cboCategoria.addItem("Tasa_de_Rotacion");
+            cboCategoria.addItem("Multas_Recaudadas");
+            cboCategoria.addItem("Clientes_Morosos");
+            cboCategoria.addItem("Inventario");
+            cboCategoria.addItem("Adquisiciones");
+            return;
+        }
+
     }
 
     private void exportarExcel()

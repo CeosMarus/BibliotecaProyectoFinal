@@ -45,6 +45,7 @@ public class MainMenuForm {
             btnAdquisiciones.setEnabled(false);
             btnAuditoria.setEnabled(false);
             btnDevoluciones.setEnabled(false);
+            btnReporteria.setEnabled(true);
         }
         else if (Sesion.hasRole("Financiero")) {
             btnUsuario.setEnabled(false);
@@ -58,6 +59,7 @@ public class MainMenuForm {
             btnAdquisiciones.setEnabled(false);
             btnInventario.setEnabled(false);
             btnAuditoria.setEnabled(false);
+            btnReporteria.setEnabled(true);
         }
         else if (!Sesion.hasRole("ADMIN")) {
             btnUsuario.setEnabled(false);
@@ -96,6 +98,7 @@ public class MainMenuForm {
         if( btnDevolucion != null)btnDevolucion.addActionListener(e -> abrirDevolucion());
         if (btnAuditoria != null) btnAuditoria.addActionListener(e -> abrirAuditoria());
         if (btnReservas != null) btnReservas.addActionListener(e -> abrirReservas());
+        if (btnReporteria != null) btnReporteria.addActionListener(e -> abrirReportes());
 
 
         // 🔐 Cerrar sesión
@@ -159,6 +162,12 @@ public class MainMenuForm {
         f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
     }
 
+    private void abrirReportes() {
+        JFrame f = new JFrame("Reportes");
+        f.setContentPane(new ReportesForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
 
     // main tests
     public static void main(String[] args) {
