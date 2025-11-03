@@ -189,6 +189,7 @@ public class AuditoriaForm extends JFrame
         cboOpcion.addItem("Prestamos");
         cboOpcion.addItem("Reservas");
         cboOpcion.addItem("Seguridad");
+        cboOpcion.addItem("Reportes");
         cboOpcion.addItem("SolicitudesCompra");
         cboOpcion.addItem("Usuarios");
 
