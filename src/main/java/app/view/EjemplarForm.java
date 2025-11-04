@@ -7,12 +7,13 @@ import app.model.LibroConAutor;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.sql.Date;
 import java.util.List;
 
 public class EjemplarForm extends JFrame {
-    private JPanel mainPanel;
+    public JPanel mainPanel;
     private JTable tablaEjemplares;
     private JComboBox<String> comboLibro;
     private JTextField txtCodigoInventario;
@@ -32,10 +33,11 @@ public class EjemplarForm extends JFrame {
 
     public EjemplarForm() {
         setTitle("Gestión de Ejemplares");
-        setContentPane(mainPanel);
+        //setContentPane(mainPanel);
         setSize(950, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        mainPanel.setPreferredSize(new Dimension(900, 600));
 
         inicializarFormulario();
 

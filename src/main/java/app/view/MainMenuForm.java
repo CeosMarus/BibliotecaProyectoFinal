@@ -26,6 +26,7 @@ public class MainMenuForm {
     private JButton btnAuditoria;
     private JButton btnMenuCliente; // ✅ Ya está en tu diseño
     private JButton btnDevolucion;
+    private JButton btnEjemplares;
 
     public MainMenuForm() {
         panelPrincipal.setPreferredSize(new Dimension(900, 600));
@@ -46,6 +47,7 @@ public class MainMenuForm {
             btnAuditoria.setEnabled(false);
             btnDevoluciones.setEnabled(false);
             btnReporteria.setEnabled(true);
+            btnEjemplares.setEnabled(true);
         }
         else if (Sesion.hasRole("Financiero")) {
             btnUsuario.setEnabled(false);
@@ -60,6 +62,7 @@ public class MainMenuForm {
             btnInventario.setEnabled(false);
             btnAuditoria.setEnabled(false);
             btnReporteria.setEnabled(true);
+            btnEjemplares.setEnabled(false);
         }
         else if (!Sesion.hasRole("ADMIN")) {
             btnUsuario.setEnabled(false);
@@ -76,6 +79,8 @@ public class MainMenuForm {
             btnInventario.setEnabled(false);
             btnReporteria.setEnabled(false);
             btnAuditoria.setEnabled(false);
+            btnDevolucion.setEnabled(false);
+            btnEjemplares.setEnabled(false);
         }
 
         // ✅ Habilitar botón portal cliente SOLO si es CLIENTE o ADMIN
@@ -99,6 +104,7 @@ public class MainMenuForm {
         if (btnAuditoria != null) btnAuditoria.addActionListener(e -> abrirAuditoria());
         if (btnReservas != null) btnReservas.addActionListener(e -> abrirReservas());
         if (btnReporteria != null) btnReporteria.addActionListener(e -> abrirReportes());
+        if (btnEjemplares != null) btnEjemplares.addActionListener(e -> abrirEjemplar());
 
 
         // 🔐 Cerrar sesión
@@ -165,6 +171,13 @@ public class MainMenuForm {
     private void abrirReportes() {
         JFrame f = new JFrame("Reportes");
         f.setContentPane(new ReportesForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirEjemplar() {
+        JFrame f = new JFrame("Gestión de Ejemplares");
+        f.setContentPane(new EjemplarForm().mainPanel);
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
     }
