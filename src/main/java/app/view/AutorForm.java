@@ -8,6 +8,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.util.List;
 
 public class AutorForm extends JFrame {
@@ -38,6 +39,7 @@ public class AutorForm extends JFrame {
         setSize(900, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        panelPrincipal.setPreferredSize(new Dimension(900, 600));
 
         // **Respetando el panel de UI Designer**
         setContentPane(panelPrincipal);
@@ -55,7 +57,7 @@ public class AutorForm extends JFrame {
         btnEliminar.addActionListener(e -> onEliminar());
         btnLimpiar.addActionListener(e -> limpiarFormulario());
         btnCargar.addActionListener(e -> cargarTabla());
-        btnSalir.addActionListener(e -> dispose());
+        btnSalir.addActionListener(e -> onSalir());
 
         // Selección de tabla
         tblAutores.getSelectionModel().addListSelectionListener(this::onTableSelection);
@@ -88,6 +90,15 @@ public class AutorForm extends JFrame {
 
         // Cargar datos al iniciar
         cargarTabla();
+    }
+    private void onSalir() {
+        if (JOptionPane.showConfirmDialog(this, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
+        }
     }
 
     private void onTableSelection(ListSelectionEvent e) {

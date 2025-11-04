@@ -11,6 +11,7 @@ import app.dao.LibroDAO;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
@@ -39,6 +40,7 @@ public class PrestamosForm extends JFrame {
         setSize(800, 500);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        panelPrincipal.setPreferredSize(new Dimension(900, 600));
 
         configurarTabla();
         cargarClientes();
@@ -58,7 +60,7 @@ public class PrestamosForm extends JFrame {
         btnLimpiar.addActionListener(e -> limpiarCampos());
 
         // Botón Regresar
-        btnRegresar.addActionListener(e -> dispose());
+        btnRegresar.addActionListener(e -> onSalir());
     }
 
     //Configura tabla
@@ -253,6 +255,16 @@ public class PrestamosForm extends JFrame {
         cbCliente.setSelectedIndex(-1);
         cbEjemplar.setSelectedIndex(-1);
         tblPrestamos.clearSelection();
+    }
+
+    private void onSalir() {
+        if (JOptionPane.showConfirmDialog(this, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
+        }
     }
 
     // MAIN (para pruebas independientes)

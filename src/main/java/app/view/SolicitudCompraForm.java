@@ -281,8 +281,13 @@ public class SolicitudCompraForm {
     }
 
     private void onSalir() {
-        Window w = SwingUtilities.getWindowAncestor(panelPrincipal);
-        if (w != null) w.dispose();
+        if (JOptionPane.showConfirmDialog(panelPrincipal, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
+        }
     }
 
     /** ✅ MAIN de pruebas */

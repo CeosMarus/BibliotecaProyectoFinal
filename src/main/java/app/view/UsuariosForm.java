@@ -280,12 +280,24 @@ public class UsuariosForm {
     }
 
     /* Salir */
-    private void onSalir() {
+    /*private void onSalir() {
         Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
         if (window != null) {
             window.dispose(); // Cierra solo esta ventana
         }
+    }*/
+
+    private void onSalir() {
+        if (JOptionPane.showConfirmDialog(panelPrincipal, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
+        }
     }
+
+
 //Main para pruebas independientes
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

@@ -69,7 +69,7 @@ public class MultaView extends JPanel {
 
     public MultaView() {
         setLayout(new BorderLayout(10, 10));
-        setPreferredSize(new Dimension(1100, 600));
+        setPreferredSize(new Dimension(900, 600));
 
         initComponents();
         cargarClientes();

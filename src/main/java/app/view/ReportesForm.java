@@ -35,6 +35,7 @@ public class ReportesForm {
     public JPanel panelPrincipal;
     private JLabel infoFechas;
     private JButton btnLimpiar;
+    private JButton btnSalir;
 
     private final ReportesDAO reportesDAO = new ReportesDAO();
     private DefaultTableModel model = null;
@@ -69,6 +70,7 @@ public class ReportesForm {
         btnExcel.addActionListener(e -> exportarExcel());
         btnPDF.addActionListener(e -> exportarPDF());
         btnLimpiar.addActionListener(e -> limpiarTabla());
+        btnSalir.addActionListener(e -> onSalir());
 
     }
 
@@ -462,6 +464,16 @@ public class ReportesForm {
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error al exportar a PDF: " + e.getMessage());
+        }
+    }
+
+    private void onSalir() {
+        if (JOptionPane.showConfirmDialog(panelPrincipal, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
         }
     }
 

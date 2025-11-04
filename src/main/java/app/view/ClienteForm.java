@@ -287,11 +287,15 @@ public class ClienteForm {
 
     /** Botón Salir */
     private void onSalir() {
-        Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
-        if (window != null) {
-            window.dispose(); // Cierra solo esta ventana
+        if (JOptionPane.showConfirmDialog(panelPrincipal, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
         }
     }
+
 
     /** Utilidades */
     private void mostrarError(String msg) {
