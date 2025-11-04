@@ -29,6 +29,8 @@ public class LoginForm {
         // Assigns an action to the 'Exit' button
         btnSalir.addActionListener(e -> onSalir());
 
+        btnLoginFacial.addActionListener(e -> abrirLoginFacial());
+
         // Adds a key listener to the password field to trigger login on Enter press
         txtPassword.addKeyListener(new KeyAdapter() {
             @Override
@@ -82,7 +84,7 @@ public class LoginForm {
     }
     //crearemos el metodo para abri el menu y poder loguearnos
     private void abrirMenu() {
-        JFrame f = new JFrame("Menú Principal – Librería");
+        JFrame f = new JFrame("Menú Principal – Biblioteca");
         /** descomentar para asignar el menu correcto luego del login**/
        f.setContentPane(new MainMenuForm().panelPrincipal);
 //        f.setContentPane(new AperturaCajaView());
@@ -99,6 +101,17 @@ public class LoginForm {
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    private void abrirLoginFacial() {
+        // Crea una nueva ventana con el LoginReconForm
+        JFrame f = new JFrame("Login Facial");
+        f.setContentPane(new LoginReconForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack();
+        f.setLocationRelativeTo(null);
+        f.setVisible(true);
+        SwingUtilities.invokeLater(() -> new LoginReconForm().setVisible(true));
     }
 
     // Launcher

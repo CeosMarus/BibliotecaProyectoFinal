@@ -1,3 +1,5 @@
+//Surgio para 2fa, pero no esta conectado
+
 package app.view;
 
 import app.dao.RostroUsuarioDAO;

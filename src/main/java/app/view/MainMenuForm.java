@@ -24,7 +24,7 @@ public class MainMenuForm {
     private JButton btnInventario;
     private JButton btnReporteria;
     private JButton btnAuditoria;
-    private JButton btnMenuCliente; // ✅ Ya está en tu diseño
+    private JButton btnMenuCliente; //Ya está en tu diseño
     private JButton btnDevolucion;
     private JButton btnEjemplares;
 
@@ -83,7 +83,7 @@ public class MainMenuForm {
             btnEjemplares.setEnabled(false);
         }
 
-        // ✅ Habilitar botón portal cliente SOLO si es CLIENTE o ADMIN
+        //Habilitar botón portal cliente SOLO si es CLIENTE o ADMIN
         if (Sesion.hasRole("CLIENTE") || Sesion.hasRole("ADMIN")) {
             if (btnMenuCliente != null) {
                 btnMenuCliente.setEnabled(true);
@@ -107,7 +107,7 @@ public class MainMenuForm {
         if (btnEjemplares != null) btnEjemplares.addActionListener(e -> abrirEjemplar());
 
 
-        // 🔐 Cerrar sesión
+        // Cerrar sesión
         if(btnCerrarSesion != null) btnCerrarSesion.addActionListener(e -> {
             Sesion.cerrarSesion();
             JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(panelPrincipal);
@@ -136,7 +136,9 @@ public class MainMenuForm {
         JFrame f = new JFrame("Registro de Usuario");
         f.setContentPane(new UsuariosForm().panelPrincipal);
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+        f.pack();
+        f.setLocationRelativeTo(null);
+        f.setVisible(true);
     }
 
     private void abrirInventario() {
@@ -159,7 +161,9 @@ public class MainMenuForm {
         JFrame f = new JFrame("Auditoria");
         f.setContentPane(new AuditoriaForm().panelPrincipal);
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+        f.pack();
+        f.setLocationRelativeTo(null);
+        f.setVisible(true);
     }
     private void abrirReservas() {
         JFrame f = new JFrame("Reservas");
