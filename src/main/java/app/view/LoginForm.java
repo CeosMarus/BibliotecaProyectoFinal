@@ -15,6 +15,7 @@ public class LoginForm {
     private JPasswordField txtPassword;
     private JButton btnEntrar;
     private JButton btnSalir; // Added btnSalir to your class fields
+    private JButton btnLoginFacial;
     private JLabel lblStatus;
 
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
