@@ -14,7 +14,7 @@ import java.util.List;
 
 public class CompraLibroForm extends JFrame {
 
-    private JPanel panel;
+    public JPanel panel;
     private JComboBox<SolicitudCompra> cboSolicitud;
     private JTextField txtProveedor, txtCostoTotal, txtFechaRecepcion;
     private JButton btnGuardar, btnEliminar, btnSalir, btnLimpiar;
@@ -27,9 +27,10 @@ public class CompraLibroForm extends JFrame {
 
     public CompraLibroForm() {
         setTitle("Registro de Compras de Libros");
-        setSize(800, 450);
+        //setSize(800, 450);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        panel.setPreferredSize(new Dimension(900, 600));
 
         panel = new JPanel(new BorderLayout());
         setContentPane(panel);
@@ -74,7 +75,7 @@ public class CompraLibroForm extends JFrame {
 
         btnGuardar.addActionListener(e -> guardar());
         btnEliminar.addActionListener(e -> eliminar());
-        btnSalir.addActionListener(e -> dispose());
+        btnSalir.addActionListener(e -> onSalir());
         btnLimpiar.addActionListener(e -> limpiarFormulario()); // ✅ evento asignado
     }
 
@@ -106,6 +107,16 @@ public class CompraLibroForm extends JFrame {
                     c.getCostoTotal(),
                     sdf.format(c.getFechaRecepcion())
             });
+        }
+    }
+
+    private void onSalir() {
+        if (JOptionPane.showConfirmDialog(this, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panel);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
         }
     }
 

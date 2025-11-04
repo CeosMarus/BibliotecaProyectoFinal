@@ -38,6 +38,7 @@ public class CategoriaForm extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setContentPane(panelPrincipal);
+        panelPrincipal.setPreferredSize(new Dimension(900, 600));
 
         // Tabla
         tblCategorias.setModel(model);
@@ -53,7 +54,7 @@ public class CategoriaForm extends JFrame {
         btnEliminar.addActionListener(e -> onEliminar());
         btnLimpiar.addActionListener(e -> limpiarFormulario());
         btnCargar.addActionListener(e -> cargarTabla());
-        btnSalir.addActionListener(e -> dispose());
+        btnSalir.addActionListener(e -> onSalir());
 
         // Listener selección de tabla
         tblCategorias.getSelectionModel().addListSelectionListener(this::onTableSelection);
@@ -80,6 +81,15 @@ public class CategoriaForm extends JFrame {
 
         // Cargar datos al iniciar
         cargarTabla();
+    }
+    private void onSalir() {
+        if (JOptionPane.showConfirmDialog(this, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
+        }
     }
 
     // Selección de tabla

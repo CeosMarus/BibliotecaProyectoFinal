@@ -3,7 +3,6 @@ package app.view;
 import app.dao.AuditoriaDAO;
 import app.dao.UsuarioDAO;
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -23,6 +22,7 @@ public class AuditoriaForm extends JFrame
     public JPanel panelPrincipal;
     private JComboBox cboOpcion;
     private JButton btnLimpiar;
+    private JButton btnSalir;
 
     //Definimos la estructura de nuestra tabla
     private final DefaultTableModel model = new DefaultTableModel(
@@ -95,6 +95,9 @@ public class AuditoriaForm extends JFrame
 
         //Accion del boton limpiar
         btnLimpiar.addActionListener(e -> limpiarTabla());
+
+        //Acción para Salir
+        btnSalir.addActionListener(e -> onSalir());
     }
     private void cargarAuditorias()
     {
@@ -212,6 +215,16 @@ public class AuditoriaForm extends JFrame
             JOptionPane.showMessageDialog(null,
                     "Error al cargar los usernames: " + e.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void onSalir() {
+        if (JOptionPane.showConfirmDialog(panelPrincipal, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
         }
     }
 

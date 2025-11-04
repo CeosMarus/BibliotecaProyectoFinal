@@ -16,6 +16,7 @@ import app.model.Libro;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
@@ -26,7 +27,7 @@ public class DevolucionForm extends JFrame {
     private JComboBox<Prestamo> cboPrestamo;
     private JTextField txtFechaDevolucion;
     private JTable tblDevoluciones;
-    private JScrollPane scrollDevoluciones;
+    //private JScrollPane scrollDevoluciones;
     private JButton btnRegistrar;
     private JButton btnAnular;
     private JButton btnSalir;
@@ -46,8 +47,9 @@ public class DevolucionForm extends JFrame {
         setSize(900, 520);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        panelPrincipal.setPreferredSize(new Dimension(900, 600));
 
-        scrollDevoluciones.setViewportView(tblDevoluciones);
+        //scrollDevoluciones.setViewportView(tblDevoluciones);
 
         // Opciones de estado de la copia
         cboEstadoCopia.addItem("Nuevo");
@@ -63,7 +65,7 @@ public class DevolucionForm extends JFrame {
 
         btnRegistrar.addActionListener(e -> registrarDevolucion());
         btnAnular.addActionListener(e -> anularDevolucion());
-        btnSalir.addActionListener(e -> dispose());
+        btnSalir.addActionListener(e -> onSalir());
     }
 
     private void cargarPrestamosPendientes() {
@@ -105,6 +107,16 @@ public class DevolucionForm extends JFrame {
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error cargando préstamos: " + e.getMessage());
+        }
+    }
+
+    private void onSalir() {
+        if (JOptionPane.showConfirmDialog(this, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
         }
     }
 

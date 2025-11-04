@@ -11,6 +11,7 @@ import app.model.Usuario;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -65,7 +66,7 @@ public class InventarioForm extends JFrame {
         btnRegistrarDiferencia.addActionListener(this::registrarDiferencia);
         btnBuscar.addActionListener(this::buscarPorFecha);
         btnVerTodos.addActionListener(e -> cargarInventarios());
-        btnSalir.addActionListener(e -> salir());
+        btnSalir.addActionListener(e -> onSalir());
 
         tablaInventarios.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) cargarSeleccionInventario();
@@ -330,9 +331,13 @@ public class InventarioForm extends JFrame {
         }
     }
 
-    private void salir() {
-        if (JOptionPane.showConfirmDialog(this, "¿Cerrar ventana?", "Salir", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-            dispose();
+    private void onSalir() {
+        if (JOptionPane.showConfirmDialog(this, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(mainPanel);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
         }
     }
 

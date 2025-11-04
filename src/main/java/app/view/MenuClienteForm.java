@@ -1,6 +1,7 @@
 package app.view;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class MenuClienteForm extends JFrame {
 
@@ -15,6 +16,7 @@ public class MenuClienteForm extends JFrame {
         setTitle("Menú Cliente");
         setContentPane(panelPrincipal);
         setSize(400, 300);
+        panelPrincipal.setPreferredSize(new Dimension(900, 600));
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 

@@ -45,7 +45,7 @@ public class EjemplarForm extends JFrame {
         btnActualizar.addActionListener(this::actualizarEjemplar);
         btnEliminar.addActionListener(this::eliminarEjemplar);
         btnLimpiar.addActionListener(e -> limpiarCampos());
-        btnSalir.addActionListener(e -> salirFormulario());
+        btnSalir.addActionListener(e -> onSalir());
 
         tablaEjemplares.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) cargarSeleccionTabla();
@@ -135,10 +135,13 @@ public class EjemplarForm extends JFrame {
         }
     }
 
-    private void salirFormulario() {
+    private void onSalir() {
         if (JOptionPane.showConfirmDialog(this, "¿Deseas cerrar el formulario?",
                 "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-            this.dispose();
+            Window window = SwingUtilities.getWindowAncestor(mainPanel);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
         }
     }
 

@@ -65,7 +65,7 @@ public class LibroForm extends JFrame {
         btnEliminar.addActionListener(e -> onEliminar());
         btnLimpiar.addActionListener(e -> limpiarFormulario());
         btnCargar.addActionListener(e -> cargarTabla());
-        btnSalir.addActionListener(e -> dispose());
+        btnSalir.addActionListener(e -> onSalir());
 
         tblLibros.getSelectionModel().addListSelectionListener(this::onTableSelection);
 
@@ -111,6 +111,16 @@ public class LibroForm extends JFrame {
 
         List<Categoria> categorias = categoriaDAO.listarActivas();
         for (Categoria c : categorias) cboCategoria.addItem(c);
+    }
+
+    private void onSalir() {
+        if (JOptionPane.showConfirmDialog(this, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
+        }
     }
 
     private void onTableSelection(ListSelectionEvent e) {

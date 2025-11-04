@@ -27,6 +27,7 @@ public class MainMenuForm {
     private JButton btnMenuCliente; // ✅ Ya está en tu diseño
     private JButton btnDevolucion;
     private JButton btnEjemplares;
+    private JButton btnSolicitudCompra;
 
     public MainMenuForm() {
         panelPrincipal.setPreferredSize(new Dimension(900, 600));
@@ -79,8 +80,8 @@ public class MainMenuForm {
             btnInventario.setEnabled(false);
             btnReporteria.setEnabled(false);
             btnAuditoria.setEnabled(false);
-            btnDevolucion.setEnabled(false);
             btnEjemplares.setEnabled(false);
+            btnSolicitudCompra.setEnabled(false);
         }
 
         // ✅ Habilitar botón portal cliente SOLO si es CLIENTE o ADMIN
@@ -96,15 +97,27 @@ public class MainMenuForm {
         }
 
         // ---- Botones funcionales ----
-        if (btnCaja  != null)  btnCaja.addActionListener(e -> abrirAperturaCaja());
-        if (btnUsuario != null) btnUsuario.addActionListener(e -> abrirUsuario());
-        if (btnInventario != null) btnInventario.addActionListener(e -> abrirInventario());
-        if (btnClientes != null) btnClientes.addActionListener(e -> abrirClientes());
-        if( btnDevolucion != null)btnDevolucion.addActionListener(e -> abrirDevolucion());
-        if (btnAuditoria != null) btnAuditoria.addActionListener(e -> abrirAuditoria());
+        //Bloque 1
+        if (btnAutores  != null)  btnAutores.addActionListener(e -> abrirAutores());
+        if (btnCategorias != null)  btnCategorias.addActionListener(e -> abrirCategorias());
+        if (btnLibros  != null)  btnLibros.addActionListener(e -> abrirLibros());
+
+        if (btnPrestamos  != null)  btnPrestamos.addActionListener(e -> abrirPrestamos());
         if (btnReservas != null) btnReservas.addActionListener(e -> abrirReservas());
-        if (btnReporteria != null) btnReporteria.addActionListener(e -> abrirReportes());
+        if( btnDevoluciones != null)btnDevoluciones.addActionListener(e -> abrirDevoluciones());
+
         if (btnEjemplares != null) btnEjemplares.addActionListener(e -> abrirEjemplar());
+        if (btnInventario != null) btnInventario.addActionListener(e -> abrirInventario());
+        if (btnReporteria != null) btnReporteria.addActionListener(e -> abrirReportes());
+        if (btnAuditoria != null) btnAuditoria.addActionListener(e -> abrirAuditoria());
+
+        if (btnSolicitudCompra != null) btnSolicitudCompra.addActionListener(e -> abrirSolicitudCompra());
+        if (btnAdquisiciones != null) btnAdquisiciones.addActionListener(e -> abrirAdquisiciones());
+        if (btnCaja  != null)  btnCaja.addActionListener(e -> abrirAperturaCaja());
+        btnMultas.addActionListener(e -> abrirMultas());
+
+        if (btnClientes != null) btnClientes.addActionListener(e -> abrirClientes());
+        if (btnUsuario != null) btnUsuario.addActionListener(e -> abrirUsuario());
 
 
         // 🔐 Cerrar sesión
@@ -116,18 +129,109 @@ public class MainMenuForm {
         });
     }
 
-    private void abrirMenuCliente() {
-       MenuClienteForm menuClienteForm = new MenuClienteForm();
-       menuClienteForm.setVisible(true);
+
+    // Views
+    private void abrirAutores() {
+        JFrame f = new JFrame("Gestión de Autores");
+        f.setContentPane(new AutorForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
     }
-    private void abrirDevolucion() {
-        DevolucionForm devolucionForm = new DevolucionForm();
-        devolucionForm.setVisible(true);
+
+    private void abrirCategorias() {
+        JFrame f = new JFrame("Gestión de Categorías");
+        f.setContentPane(new CategoriaForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirLibros() {
+        JFrame f = new JFrame("Gestión de Libros");
+        f.setContentPane(new LibroForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirPrestamos() {
+        JFrame f = new JFrame("Gestión de Prestamos");
+        f.setContentPane(new PrestamosForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirReservas() {
+        JFrame f = new JFrame("Gestión de Reservas");
+        f.setContentPane(new ReservasForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirDevoluciones() {
+        JFrame f = new JFrame("Gestión de Devoluciones");
+        f.setContentPane(new DevolucionForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirEjemplar() {
+        JFrame f = new JFrame("Gestión de Ejemplares");
+        f.setContentPane(new EjemplarForm().mainPanel);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirInventario() {
+        JFrame f = new JFrame("Gestión de Inventario Físico");
+        InventarioForm inventarioForm = new InventarioForm();
+        inventarioForm.setVisible(true);
+    }
+
+    private void abrirReportes() {
+        JFrame f = new JFrame("Gestión de Reportes");
+        f.setContentPane(new ReportesForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirAuditoria() {
+        JFrame f = new JFrame("Gestión de Auditoria");
+        f.setContentPane(new AuditoriaForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirSolicitudCompra() {
+        JFrame f = new JFrame("Gestión de Solicitudes (compras)");
+        f.setContentPane(new SolicitudCompraForm().panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirAdquisiciones() {
+        JFrame f = new JFrame("Gestión de Adquisiciones (compras)");
+        f.setContentPane(new CompraLibroForm().panel);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
     }
 
     private void abrirAperturaCaja() {
         JFrame f = new JFrame("Apertura de Caja");
         f.setContentPane(new AperturaCajaView());
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirMultas() {
+        JFrame f = new JFrame("Registro de Multas");
+        f.setContentPane(new MultaView());
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    }
+
+    private void abrirClientes() {
+        Usuario u = new Usuario(1, "admin", "Administrador", "ADMIN", 1);
+        JFrame f = new JFrame("Gestión de Clientes");
+        f.setContentPane(new ClienteForm(u).panelPrincipal);
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
     }
@@ -139,47 +243,9 @@ public class MainMenuForm {
         f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
     }
 
-    private void abrirInventario() {
-        JFrame f = new JFrame("Gestión de Inventario Físico");
-        InventarioForm inventarioForm = new InventarioForm();
-        inventarioForm.setVisible(true);
-    }
-
-    private void abrirClientes() {
-        Usuario u = new Usuario(1, "admin", "Administrador", "ADMIN", 1);
-        JFrame f = new JFrame("Gestión de Clientes");
-        f.setContentPane(new ClienteForm(u).panelPrincipal);
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.pack();
-        f.setLocationRelativeTo(null);
-        f.setVisible(true);
-    }
-
-    private void abrirAuditoria() {
-        JFrame f = new JFrame("Auditoria");
-        f.setContentPane(new AuditoriaForm().panelPrincipal);
-        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
-    }
-    private void abrirReservas() {
-        JFrame f = new JFrame("Reservas");
-        f.setContentPane(new ReservasForm().panelPrincipal);
-        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
-    }
-
-    private void abrirReportes() {
-        JFrame f = new JFrame("Reportes");
-        f.setContentPane(new ReportesForm().panelPrincipal);
-        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
-    }
-
-    private void abrirEjemplar() {
-        JFrame f = new JFrame("Gestión de Ejemplares");
-        f.setContentPane(new EjemplarForm().mainPanel);
-        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        f.pack(); f.setLocationRelativeTo(null); f.setVisible(true);
+    private void abrirMenuCliente() {
+        MenuClienteForm menuClienteForm = new MenuClienteForm();
+        menuClienteForm.setVisible(true);
     }
 
     // main tests

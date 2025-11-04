@@ -31,6 +31,7 @@ public class ReservasForm
     public JPanel panelPrincipal;
     private JLabel infoEstado;
     private JButton btnEliminar;
+    private JButton btnSalir;
 
     private final ClienteDAO clienteDAO = new ClienteDAO();
     private final LibroDAO libroDAO = new LibroDAO();
@@ -70,6 +71,7 @@ public class ReservasForm
         btnConfirmar.addActionListener(e -> confirmarReserva());
         tblReservas.getSelectionModel().addListSelectionListener(e -> seleccionarReserva());
         btnEliminar.addActionListener(e -> eliminarReserva());
+        btnSalir.addActionListener(e -> onSalir());
 
         //Iniciar el Timer al construir el formulario
         iniciarTimerVencidas();
@@ -101,6 +103,17 @@ public class ReservasForm
             JOptionPane.showMessageDialog(null, "Error al listar clientes: " + e.getMessage());
         }
     }
+    //Salir
+    private void onSalir() {
+        if (JOptionPane.showConfirmDialog(panelPrincipal, "¿Deseas cerrar el formulario?",
+                "Confirmar salida", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            Window window = SwingUtilities.getWindowAncestor(panelPrincipal);
+            if (window != null) {
+                window.dispose(); // Cierra solo esta ventana
+            }
+        }
+    }
+
     //Autocompletado de NIT
     private void mostrarNitClienteSeleccionado() {
         Cliente c = (Cliente) cboCliente.getSelectedItem();
