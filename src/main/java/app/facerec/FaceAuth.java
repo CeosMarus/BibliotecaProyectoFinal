@@ -1,104 +1,131 @@
 package app.facerec;
 
+import org.bytedeco.javacpp.DoublePointer;
+import org.bytedeco.javacpp.IntPointer;
+import org.bytedeco.javacv.*;
+import org.bytedeco.javacv.Frame;
 import org.bytedeco.opencv.opencv_core.*;
-import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
-import org.bytedeco.opencv.opencv_videoio.VideoCapture;
+import org.bytedeco.opencv.opencv_face.*;
+import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
+import org.bytedeco.opencv.opencv_core.Mat;
+import org.bytedeco.opencv.opencv_core.Point;
+import org.bytedeco.opencv.opencv_core.Rect;
+import org.bytedeco.opencv.opencv_core.Scalar;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
 
 import static org.bytedeco.opencv.global.opencv_imgproc.*;
+import static org.bytedeco.opencv.global.opencv_core.mean;
 
-public class FaceAuth
-{
-    private final LBPHFaceRecognizer lbph;
-    private final FaceService faceService;
-    private final double threshold; // umbral de aceptación (p.ej. 45–50)
+public class FaceAuth {
+    private LBPHFaceRecognizer recognizer;
+    private CascadeClassifier detector;
+    private double threshold;
+    private static final double LUZ_MINIMA = 60.0;
 
-    // Parámetros internos de robustez (puedes ajustar)
-    private static final int MIN_VOTES = 10;       // mínimo de “coincidencias” del mismo id
-    private static final double VOTE_MARGIN = 10;  // margen para contar votos (threshold + margen)
-
+    /**
+     * Constructor
+     * @param modelPath ruta del modelo LBPH entrenado (ej. data/modelos/lbph_model.xml)
+     * @param cascadePath ruta del clasificador Haarcascade
+     * @param threshold umbral de tolerancia (menor = más estricto)
+     */
     public FaceAuth(String modelPath, String cascadePath, double threshold) {
-        this.lbph = LBPHFaceRecognizer.create();
-        this.lbph.read(modelPath);
-        this.faceService = new FaceService(cascadePath);
+        File modelFile = new File(modelPath);
+        if (!modelFile.exists()) {
+            throw new RuntimeException("Modelo facial no encontrado: " + modelPath);
+        }
+
         this.threshold = threshold;
+        this.recognizer = LBPHFaceRecognizer.create();
+        this.recognizer.read(modelFile.getAbsolutePath());
+        this.detector = new CascadeClassifier(cascadePath);
     }
 
     /**
-     * Escanea 'framesToScan' frames de la cámara 'cameraIndex'.
-     * Usa votación por id y mediana de confianza.
-     * Devuelve idUsuario si pasa criterios; si no, null.
+     * Abre la cámara y trata de reconocer un rostro
+     * @param cameraIndex índice de la cámara (0 por defecto)
+     * @param maxSegundos tiempo máximo antes de cancelar
+     * @return ID del usuario reconocido o null si no hay coincidencia
      */
-    public Integer predictUserIdFromWebcam(int cameraIndex, int framesToScan) {
-        VideoCapture cam = new VideoCapture(cameraIndex);
-        if (!cam.isOpened()) throw new RuntimeException("No se pudo abrir la webcam índice " + cameraIndex);
+    public Integer predictUserIdFromWebcam(int cameraIndex, int maxSegundos) {
+        Integer userId = null;
+        long start = System.currentTimeMillis();
 
-        try {
-            Map<Integer, List<Double>> confByLabel = new HashMap<>();
-            Mat frame = new Mat();
+        try (OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(cameraIndex)) {
+            grabber.start();
+            OpenCVFrameConverter.ToMat conv = new OpenCVFrameConverter.ToMat();
 
-            int frames = 0;
-            while (frames++ < Math.max(5, framesToScan)) {
-                if (!cam.read(frame) || frame.empty()) continue;
+            JFrame ventana = new JFrame("Verificación Facial");
+            JLabel lbl = new JLabel();
+            ventana.setSize(640, 480);
+            ventana.add(lbl);
+            ventana.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            ventana.setVisible(true);
 
-                RectVector faces = faceService.detectFaces(frame);
-                for (int i = 0; i < faces.size(); i++) {
-                    Rect r = faces.get(i);
-                    Mat face = new Mat(frame, r);
-                    Mat gray = new Mat();
-                    cvtColor(face, gray, COLOR_BGR2GRAY);
-                    resize(gray, gray, new Size(200, 200));
+            while (System.currentTimeMillis() - start < maxSegundos * 1000L) {
+                Frame f = grabber.grab();
+                if (f == null) continue;
+                Mat frame = conv.convert(f);
+                if (frame == null || frame.empty()) continue;
 
-                    int[] label = new int[1];
-                    double[] conf = new double[1];
-                    lbph.predict(gray, label, conf);
+                Mat gray = new Mat();
+                cvtColor(frame, gray, COLOR_BGR2GRAY);
+                equalizeHist(gray, gray);
 
-                    // Solo contamos votos si la confianza está cerca del umbral
-                    if (conf[0] <= (threshold + VOTE_MARGIN)) {
-                        confByLabel.computeIfAbsent(label[0], k -> new ArrayList<>()).add(conf[0]);
+                RectVector rostros = new RectVector();
+                detector.detectMultiScale(gray, rostros);
+
+                if (rostros.size() == 0) {
+                    putText(frame, "No se detecta rostro", new Point(30, 30),
+                            FONT_HERSHEY_SIMPLEX, 0.7, new Scalar(0, 0, 255, 0));
+                } else {
+                    for (int i = 0; i < rostros.size(); i++) {
+                        Rect r = rostros.get(i);
+                        rectangle(frame, r, new Scalar(0, 255, 0, 0));
+
+                        Mat rostro = new Mat(gray, r);
+                        Scalar brillo = mean(rostro);
+                        if (brillo.get(0) < LUZ_MINIMA) {
+                            putText(frame, "Iluminacion insuficiente", new Point(20, 50),
+                                    FONT_HERSHEY_SIMPLEX, 0.6, new Scalar(0, 0, 255, 0));
+                            continue;
+                        }
+
+                        IntPointer label = new IntPointer(1);
+                        DoublePointer confidence = new DoublePointer(1);
+                        recognizer.predict(rostro, label, confidence);
+                        int predictedId = label.get(0);
+                        double conf = confidence.get(0);
+
+                        if (conf < threshold) {
+                            userId = predictedId;
+                            putText(frame, "Reconocido ID=" + userId, new Point(20, 30),
+                                    FONT_HERSHEY_SIMPLEX, 0.8, new Scalar(0, 255, 0, 0));
+                            ventana.repaint();
+                            Thread.sleep(1500);
+                            ventana.dispose();
+                            return userId;
+                        } else {
+                            putText(frame, "No coincide (" + (int) conf + ")", new Point(20, 30),
+                                    FONT_HERSHEY_SIMPLEX, 0.7, new Scalar(0, 0, 255, 0));
+                        }
                     }
                 }
+
+                Image img = new Java2DFrameConverter().getBufferedImage(f);
+                lbl.setIcon(new ImageIcon(img.getScaledInstance(lbl.getWidth(), lbl.getHeight(), Image.SCALE_SMOOTH)));
+                ventana.repaint();
             }
 
-            if (confByLabel.isEmpty()) return null;
+            ventana.dispose();
+            grabber.stop();
 
-            // Elegimos el mejor id: más votos y menor mediana de confianza
-            Integer bestLabel = confByLabel.entrySet().stream()
-                    .sorted((a, b) -> {
-                        int byVotes = Integer.compare(b.getValue().size(), a.getValue().size());
-                        if (byVotes != 0) return byVotes;
-                        return Double.compare(median(a.getValue()), median(b.getValue()));
-                    })
-                    .map(Map.Entry::getKey)
-                    .findFirst()
-                    .orElse(null);
-
-            if (bestLabel == null) return null;
-
-            List<Double> confs = confByLabel.get(bestLabel);
-            int votes = confs.size();
-            double med = median(confs);
-
-            System.out.println("Predicción: label=" + bestLabel + " votos=" + votes +
-                    " medianaConf=" + String.format(java.util.Locale.US, "%.2f", med));
-
-            // Criterios de aceptación
-            if (votes >= MIN_VOTES && med <= threshold) {
-                return bestLabel;
-            }
-            return null;
-
-        } finally {
-            cam.release();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    }
 
-    private static double median(List<Double> xs) {
-        if (xs == null || xs.isEmpty()) return Double.POSITIVE_INFINITY;
-        List<Double> s = xs.stream().sorted().collect(Collectors.toList());
-        int n = s.size();
-        return (n % 2 == 1) ? s.get(n / 2) : (s.get(n / 2 - 1) + s.get(n / 2)) / 2.0;
+        return userId;
     }
 }

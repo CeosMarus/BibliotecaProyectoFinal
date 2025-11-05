@@ -226,6 +226,27 @@ public class UsuarioDAO extends BaseDAO {
 
         return usernames;
     }
+    public Usuario buscarPorId(int id) {
+        String sql = "SELECT id, username, nombre, password, rol, estado FROM Usuario WHERE id = ?";
+        try (Connection cn = Conexion.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Usuario u = new Usuario(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getString("nombre"),
+                        rs.getString("rol"),
+                        rs.getInt("estado")
+                );
+                return u;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     /** Mapear ResultSet a Usuario */
     private Usuario mapUsuario(ResultSet rs) throws SQLException {

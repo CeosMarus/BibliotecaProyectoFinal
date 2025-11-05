@@ -1,82 +1,105 @@
 package app.facerec;
 
-import org.bytedeco.opencv.opencv_core.Mat;
-import org.bytedeco.opencv.opencv_core.MatVector;
-import org.bytedeco.opencv.opencv_core.Size;
-import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
+import org.bytedeco.javacv.*;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.opencv.opencv_core.*;
+import org.bytedeco.opencv.opencv_face.*;
+import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.bytedeco.opencv.global.opencv_core.CV_32SC1;
-import static org.bytedeco.opencv.global.opencv_imgcodecs.IMREAD_GRAYSCALE;
-import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
-import static org.bytedeco.opencv.global.opencv_imgproc.resize;
+import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
+import static org.bytedeco.opencv.global.opencv_imgproc.*;
 
-public class FaceTrainer
-{
-    public static void train(String facesRoot, String modelPath) {
-        try {
-            List<Mat> images = new ArrayList<>();
-            List<Integer> labels = new ArrayList<>();
+public class FaceTrainer {
+    private final CascadeClassifier detector;
+    private final File dataDir;
+    private final int samples;
 
-            File root = new File(facesRoot);
-            if (!root.exists()) throw new RuntimeException("No existe carpeta: " + facesRoot);
+    public FaceTrainer(String cascadePath, File dataDir, int samples) {
+        this.detector = new CascadeClassifier(cascadePath);
+        this.dataDir = dataDir;
+        this.samples = Math.max(3, samples);
+        if (!dataDir.exists()) dataDir.mkdirs();
+    }
 
-            File[] users = root.listFiles(File::isDirectory);
-            if (users == null || users.length == 0)
-                throw new RuntimeException("No hay subcarpetas de usuarios dentro de " + facesRoot);
+    /**
+     * Captura múltiples rostros del usuario y entrena un modelo LBPH
+     */
+    public File enrolUser(int userId, int cameraIndex) throws Exception {
+        OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(cameraIndex);
+        grabber.start();
+        OpenCVFrameConverter.ToMat conv = new OpenCVFrameConverter.ToMat();
 
-            for (File userDir : users) {
-                int userId = Integer.parseInt(userDir.getName());
-                File[] imgs = userDir.listFiles((d, n) -> n.toLowerCase().endsWith(".png") && !n.contains("_nodet_"));
-                if (imgs == null) continue;
+        JFrame ventana = new JFrame("Captura de Rostro");
+        JLabel lbl = new JLabel();
+        ventana.setSize(640, 480);
+        ventana.add(lbl);
+        ventana.setVisible(true);
 
-                for (File img : imgs) {
-                    Mat m = imread(img.getAbsolutePath(), IMREAD_GRAYSCALE);
-                    if (m == null || m.empty()) continue;
-                    Mat resized = new Mat();
-                    resize(m, resized, new Size(200, 200));
-                    images.add(resized);
-                    labels.add(userId);
-                }
+        int count = 0;
+        List<Mat> faces = new ArrayList<>();
+        List<Integer> labels = new ArrayList<>();
+
+        while (count < samples) {
+            Frame frame = grabber.grab();
+            if (frame == null) continue;
+
+            Mat mat = conv.convert(frame);
+            if (mat == null || mat.empty()) continue;
+
+            Mat gray = new Mat();
+            cvtColor(mat, gray, COLOR_BGR2GRAY);
+            equalizeHist(gray, gray);
+
+            RectVector rostros = new RectVector();
+            detector.detectMultiScale(gray, rostros);
+
+            for (int i = 0; i < rostros.size(); i++) {
+                Rect r = rostros.get(i);
+                rectangle(mat, r, new Scalar(0, 255, 0, 0));
+
+                Mat rostro = new Mat(gray, r);
+                resize(rostro, rostro, new Size(160, 160));
+                faces.add(rostro);
+                labels.add(userId);
+
+                count++;
+                String filename = new File(dataDir, "user." + userId + "." + count + ".jpg").getAbsolutePath();
+                imwrite(filename, rostro);
+
+                System.out.println("Captura " + count + "/" + samples);
+                Thread.sleep(500);
             }
 
-            if (images.isEmpty())
-                throw new RuntimeException("No hay imágenes válidas para entrenar");
-
-            MatVector mats = new MatVector(images.size());
-            for (int i = 0; i < images.size(); i++) mats.put(i, images.get(i));
-
-            Mat labelsMat = new Mat(images.size(), 1, CV_32SC1);
-            IntBuffer labelsBuf = labelsMat.createBuffer();
-            for (int i = 0; i < labels.size(); i++) labelsBuf.put(i, labels.get(i));
-
-            LBPHFaceRecognizer lbph = LBPHFaceRecognizer.create();
-            lbph.setRadius(1);
-            lbph.setNeighbors(8);
-            lbph.setGridX(8);
-            lbph.setGridY(8);
-            lbph.setThreshold(80);
-
-            lbph.train(mats, labelsMat);
-
-            File modelFile = new File(modelPath);
-            modelFile.getParentFile().mkdirs();
-            lbph.save(modelPath);
-
-            System.out.println("✅ Modelo entrenado y guardado en: " + modelPath +
-                    " | Imágenes: " + images.size());
-        } catch (Exception e) {
-            throw new RuntimeException("Error entrenando LBPH: " + e.getMessage(), e);
+            Image img = new Java2DFrameConverter().getBufferedImage(frame);
+            lbl.setIcon(new ImageIcon(img.getScaledInstance(lbl.getWidth(), lbl.getHeight(), java.awt.Image.SCALE_SMOOTH)));
+            ventana.repaint();
         }
-    }
 
-    //main para pruebas individuales
-    public static void main(String[] args) {
-        train("data/faces", "data/modelos/lbph_model.xml");
-    }
+        grabber.stop();
+        ventana.dispose();
 
+        // Entrenar modelo LBPH
+        LBPHFaceRecognizer recognizer = LBPHFaceRecognizer.create();
+        MatVector mats = new MatVector(faces.size());
+        Mat labelsMat = new Mat(faces.size(), 1, org.bytedeco.opencv.global.opencv_core.CV_32SC1);
+        IntBuffer labelsBuf = labelsMat.createBuffer();
+
+        for (int i = 0; i < faces.size(); i++) {
+            mats.put(i, faces.get(i));
+            labelsBuf.put(i, labels.get(i));
+        }
+
+        recognizer.train(mats, labelsMat);
+
+        File modelFile = new File(dataDir, "lbph_model.xml");
+        recognizer.save(modelFile.getAbsolutePath());
+        return modelFile;
+    }
 }

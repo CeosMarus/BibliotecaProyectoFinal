@@ -93,22 +93,17 @@ public class CapturaRostrosForm {
 
     private void startCapture() {
         int idUsuario;
-        if (forcedUserId != null)
-        {
+        if (forcedUserId != null) {
             idUsuario = forcedUserId;
-        } else
-        {
+        } else {
             String idTxt = txtIdUsuario.getText().trim();
-            if (idTxt.isEmpty())
-            {
+            if (idTxt.isEmpty()) {
                 setStatus("Ingrese idUsuario");
                 return;
             }
-            try
-            {
+            try {
                 idUsuario = Integer.parseInt(idTxt);
-            } catch (NumberFormatException ex)
-            {
+            } catch (NumberFormatException ex) {
                 setStatus("idUsuario inválido");
                 return;
             }
@@ -116,89 +111,41 @@ public class CapturaRostrosForm {
 
         running = true;
         btnCapturar.setText("Detener");
-        setStatus("Iniciando cámara...");
+        setStatus("Iniciando enrolamiento...");
 
         new Thread(() -> {
             try {
-                FaceService faceService = new FaceService(getCascadePath());
-                VideoCapture cam = new VideoCapture(CAMERA_INDEX, BACKEND);
-                if (!cam.isOpened()) cam = new VideoCapture(CAMERA_INDEX, CAP_ANY);
-                if (!cam.isOpened()) {
-                    setStatus("No se pudo abrir la cámara");
-                    running = false;
-                    return;
-                }
+                // Crear y ejecutar FaceTrainer
+                FaceTrainer trainer = new FaceTrainer(
+                        getCascadePath(),
+                        new File("data/faces"),
+                        NUM_CAPTURAS
+                );
 
-                Mat frame = new Mat();
-                File outDir = Paths.get("data", "faces", String.valueOf(idUsuario)).toFile();
-                if (!outDir.exists()) outDir.mkdirs();
-                int count = 0;
-                while (running && count < NUM_CAPTURAS) {
-                    if (!cam.read(frame) || frame.empty()) continue;
+                // Capturar rostros y entrenar modelo LBPH
+                File modelFile = trainer.enrolUser(idUsuario, CAMERA_INDEX);
 
-                    RectVector faces = faceService.detectFaces(frame);
-                    Mat preview = frame.clone();
-                    for (int i = 0; i < faces.size(); i++) {
-                        Rect r = faces.get(i);
-                        rectangle(preview, r, new Scalar(0, 255, 0, 0), 2, LINE_8, 0);
-                    }
-                    updatePreview(preview);
-                    if (faces.size() > 0)
-                    {
-                        Rect r = faces.get(0);
-                        Mat face = new Mat(frame, r);
-                        Mat gray = new Mat();
-                        cvtColor(face, gray, COLOR_BGR2GRAY);
-                        resize(gray, gray, new Size(200, 200));
+                // Convertir modelo a bytes
+                byte[] modeloBytes = readFileToBytes(modelFile);
 
-                        String filename = new File(outDir, "u" + idUsuario + "_" + System.currentTimeMillis() + ".png").getAbsolutePath();
-                        imwrite(filename, gray);
-                        count++;
-                        setStatus("Captura " + count + " / " + NUM_CAPTURAS);
-                        Thread.sleep(500);
-                    }
-                }
-                cam.release();
-                setStatus("Captura completa. Entrenando modelo...");
+                // Guardar en BD
+                RostroUsuarioDAO dao = new RostroUsuarioDAO();
+                dao.insertarOActualizar(idUsuario, modeloBytes);
 
-                new Thread(() ->
-                {
-                    try
-                    {
-                        String facesRoot = "data/faces";
-                        String modelPath = "data/modelos/lbph_model.xml";
+                SwingUtilities.invokeLater(() -> {
+                    setStatus("Enrolamiento completado y guardado en BD");
+                    JOptionPane.showMessageDialog(panelPrincipal,
+                            "Rostro registrado exitosamente.\nPlantilla almacenada en BD.",
+                            "Captura de Rostros", JOptionPane.INFORMATION_MESSAGE);
+                    btnCapturar.setText("Capturar");
+                });
 
-                        FaceTrainer.train(facesRoot, modelPath);
-
-                        // Convertir modelo a bytes
-                        File modelFile = new File(modelPath);
-                        byte[] modeloBytes = readFileToBytes(modelFile);
-
-                        // Guardar plantilla en BD
-                        RostroUsuarioDAO dao = new RostroUsuarioDAO();
-                        dao.insertarOActualizar(idUsuario, modeloBytes);
-
-                        SwingUtilities.invokeLater(() ->
-                        {
-                            setStatus("Enrolamiento completado y guardado en BD");
-                            JOptionPane.showMessageDialog(panelPrincipal,
-                                    "Rostro registrado exitosamente.\nPlantilla almacenada en BD.",
-                                    "Captura de Rostros", JOptionPane.INFORMATION_MESSAGE);
-                            });
-                    }catch (Exception ex)
-                    {
-                        ex.printStackTrace();
-                        setStatus("Error entrenando: " + ex.getMessage());
-                    }
-                }).start();
-                running = false;
-                SwingUtilities.invokeLater(() -> btnCapturar.setText("Capturar"));
-            }catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 ex.printStackTrace();
                 setStatus("Error: " + ex.getMessage());
-                running = false;
                 SwingUtilities.invokeLater(() -> btnCapturar.setText("Capturar"));
+            } finally {
+                running = false;
             }
         }).start();
     }

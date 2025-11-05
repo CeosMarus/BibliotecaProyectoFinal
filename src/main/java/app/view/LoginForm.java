@@ -104,14 +104,12 @@ public class LoginForm {
     }
 
     private void abrirLoginFacial() {
-        // Crea una nueva ventana con el LoginReconForm
         JFrame f = new JFrame("Login Facial");
         f.setContentPane(new LoginReconForm().panelPrincipal);
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         f.pack();
         f.setLocationRelativeTo(null);
         f.setVisible(true);
-        SwingUtilities.invokeLater(() -> new LoginReconForm().setVisible(true));
     }
 
     // Launcher

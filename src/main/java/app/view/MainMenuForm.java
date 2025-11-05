@@ -29,6 +29,7 @@ public class MainMenuForm {
     private JButton btnEjemplares;
 
     public MainMenuForm() {
+        System.out.println("ROL DETECTADO: " + (Sesion.isLogged() ? Sesion.getUsuario().getRol() : "NO LOGUEADO"));
         panelPrincipal.setPreferredSize(new Dimension(900, 600));
 
         if (Sesion.isLogged() && lblUsuario != null) {
