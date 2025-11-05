@@ -46,7 +46,6 @@ public class MainMenuForm {
             btnCaja.setEnabled(false);
             btnAdquisiciones.setEnabled(false);
             btnAuditoria.setEnabled(false);
-            btnDevoluciones.setEnabled(false);
             btnReporteria.setEnabled(true);
             btnEjemplares.setEnabled(true);
         }
