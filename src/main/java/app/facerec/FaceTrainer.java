@@ -1,105 +1,97 @@
 package app.facerec;
 
-import org.bytedeco.javacv.*;
-import org.bytedeco.javacv.Frame;
+import org.bytedeco.opencv.global.opencv_core;
+import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.*;
 import org.bytedeco.opencv.opencv_face.*;
 import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
+import org.bytedeco.opencv.opencv_videoio.VideoCapture;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
-import static org.bytedeco.opencv.global.opencv_imgproc.*;
+import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
+import static org.bytedeco.opencv.global.opencv_imgproc.resize;
 
 public class FaceTrainer {
-    private final CascadeClassifier detector;
-    private final File dataDir;
-    private final int samples;
 
-    public FaceTrainer(String cascadePath, File dataDir, int samples) {
-        this.detector = new CascadeClassifier(cascadePath);
-        this.dataDir = dataDir;
-        this.samples = Math.max(3, samples);
-        if (!dataDir.exists()) dataDir.mkdirs();
+    private final String cascadePath;
+    private final int numCapturas;
+
+    public FaceTrainer(String cascadePath, File ignoredFacesDir, int numCapturas) {
+        this.cascadePath = cascadePath;
+        this.numCapturas = numCapturas;
     }
 
-    /**
-     * Captura múltiples rostros del usuario y entrena un modelo LBPH
-     */
     public File enrolUser(int userId, int cameraIndex) throws Exception {
-        OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(cameraIndex);
-        grabber.start();
-        OpenCVFrameConverter.ToMat conv = new OpenCVFrameConverter.ToMat();
+        CascadeClassifier faceDetector = new CascadeClassifier(cascadePath);
+        if (faceDetector.empty()) {
+            throw new Exception("No se pudo cargar el clasificador de rostros");
+        }
 
-        JFrame ventana = new JFrame("Captura de Rostro");
-        JLabel lbl = new JLabel();
-        ventana.setSize(640, 480);
-        ventana.add(lbl);
-        ventana.setVisible(true);
+        VideoCapture camera = new VideoCapture(cameraIndex);
+        if (!camera.isOpened()) {
+            throw new Exception("No se pudo abrir la cámara");
+        }
 
-        int count = 0;
-        List<Mat> faces = new ArrayList<>();
-        List<Integer> labels = new ArrayList<>();
+        List<Mat> rostros = new ArrayList<>();
+        List<Integer> etiquetas = new ArrayList<>();
 
-        while (count < samples) {
-            Frame frame = grabber.grab();
-            if (frame == null) continue;
+        Mat frame = new Mat();
+        int capturadas = 0;
 
-            Mat mat = conv.convert(frame);
-            if (mat == null || mat.empty()) continue;
+        System.out.println("Iniciando captura de rostros para el usuario " + userId);
+
+        while (capturadas < numCapturas) {
+            if (!camera.read(frame) || frame.empty()) continue;
 
             Mat gray = new Mat();
-            cvtColor(mat, gray, COLOR_BGR2GRAY);
-            equalizeHist(gray, gray);
+            opencv_imgproc.cvtColor(frame, gray, COLOR_BGR2GRAY);
 
-            RectVector rostros = new RectVector();
-            detector.detectMultiScale(gray, rostros);
+            RectVector rostrosDetectados = new RectVector();
+            faceDetector.detectMultiScale(gray, rostrosDetectados);
 
-            for (int i = 0; i < rostros.size(); i++) {
-                Rect r = rostros.get(i);
-                rectangle(mat, r, new Scalar(0, 255, 0, 0));
+            if (rostrosDetectados.size() == 0) continue;
 
-                Mat rostro = new Mat(gray, r);
+            for (int i = 0; i < rostrosDetectados.size(); i++) {
+                Rect rect = rostrosDetectados.get(i);
+                Mat rostro = new Mat(gray, rect);
                 resize(rostro, rostro, new Size(160, 160));
-                faces.add(rostro);
-                labels.add(userId);
 
-                count++;
-                String filename = new File(dataDir, "user." + userId + "." + count + ".jpg").getAbsolutePath();
-                imwrite(filename, rostro);
+                rostros.add(rostro.clone());
+                etiquetas.add(userId);
+                capturadas++;
 
-                System.out.println("Captura " + count + "/" + samples);
+                System.out.println("📸 Captura " + capturadas + "/" + numCapturas);
+
+                if (capturadas >= numCapturas) break;
                 Thread.sleep(500);
             }
-
-            Image img = new Java2DFrameConverter().getBufferedImage(frame);
-            lbl.setIcon(new ImageIcon(img.getScaledInstance(lbl.getWidth(), lbl.getHeight(), java.awt.Image.SCALE_SMOOTH)));
-            ventana.repaint();
         }
 
-        grabber.stop();
-        ventana.dispose();
+        camera.release();
 
-        // Entrenar modelo LBPH
-        LBPHFaceRecognizer recognizer = LBPHFaceRecognizer.create();
-        MatVector mats = new MatVector(faces.size());
-        Mat labelsMat = new Mat(faces.size(), 1, org.bytedeco.opencv.global.opencv_core.CV_32SC1);
-        IntBuffer labelsBuf = labelsMat.createBuffer();
+        // Entrenar el modelo LBPH solo con los rostros en memoria
+        LBPHFaceRecognizer recognizer = LBPHFaceRecognizer.create(1, 8, 8, 8, 75);
+        MatVector imagenes = new MatVector(rostros.size());
+        Mat labels = new Mat(rostros.size(), 1, opencv_core.CV_32SC1);
+        IntBuffer etiquetasBuf = labels.createBuffer();
 
-        for (int i = 0; i < faces.size(); i++) {
-            mats.put(i, faces.get(i));
-            labelsBuf.put(i, labels.get(i));
+        for (int i = 0; i < rostros.size(); i++) {
+            imagenes.put(i, rostros.get(i));
+            etiquetasBuf.put(i, etiquetas.get(i));
         }
 
-        recognizer.train(mats, labelsMat);
+        recognizer.train(imagenes, labels);
 
-        File modelFile = new File(dataDir, "lbph_model.xml");
-        recognizer.save(modelFile.getAbsolutePath());
-        return modelFile;
+        // Guardar el modelo en un archivo temporal (para luego convertirlo a bytes)
+        File tempModel = File.createTempFile("modelo_" + userId + "_", ".xml");
+        recognizer.save(tempModel.getAbsolutePath());
+        tempModel.deleteOnExit();
+
+        System.out.println("✅ Modelo LBPH entrenado para usuario " + userId);
+        return tempModel;
     }
 }
