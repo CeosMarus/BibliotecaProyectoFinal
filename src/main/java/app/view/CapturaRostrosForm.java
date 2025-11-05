@@ -16,6 +16,7 @@ import static org.bytedeco.opencv.global.opencv_imgproc.*;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
 import static org.bytedeco.opencv.global.opencv_videoio.CAP_ANY;
 import static org.bytedeco.opencv.global.opencv_videoio.CAP_AVFOUNDATION;
+import static org.bytedeco.opencv.global.opencv_videoio.CAP_DSHOW;
 
 public class CapturaRostrosForm {
     public JPanel panelPrincipal;
@@ -26,7 +27,11 @@ public class CapturaRostrosForm {
     private JLabel lblStatus;
     private JLabel lblPreview;
 
-    private static final int BACKEND = CAP_AVFOUNDATION;
+
+    //Para Mac
+    //private static final int BACKEND = CAP_AVFOUNDATION;
+    //para windows
+    private static final int BACKEND = CAP_DSHOW;
     private static final int CAMERA_INDEX = 0;
     private volatile boolean running = false;
     private Integer forcedUserId = null;
@@ -48,6 +53,10 @@ public class CapturaRostrosForm {
         panelPrincipal.setPreferredSize(new Dimension(900, 680));
         lblPreview.setPreferredSize(new Dimension(640, 480));
         lblPreview.setHorizontalAlignment(SwingConstants.CENTER);
+        lblPreview.setMinimumSize(new Dimension(640, 480));
+        lblPreview.setMaximumSize(new Dimension(640, 480));
+        lblPreview.setPreferredSize(new Dimension(640, 480));
+        lblPreview.setSize(640, 480);
         setStatus("Listo para capturar rostros");
 
         btnCapturar.addActionListener(e -> {
@@ -66,6 +75,7 @@ public class CapturaRostrosForm {
             Window w = SwingUtilities.getWindowAncestor(panelPrincipal);
             if (w != null) w.dispose();
         });
+        startPreview();
     }
     private void startPreview()
     {
@@ -92,6 +102,7 @@ public class CapturaRostrosForm {
     }
 
     private void startCapture() {
+        previewRunning = false;
         int idUsuario;
         if (forcedUserId != null) {
             idUsuario = forcedUserId;
@@ -138,6 +149,7 @@ public class CapturaRostrosForm {
                             "Rostro registrado exitosamente.\nPlantilla almacenada en BD.",
                             "Captura de Rostros", JOptionPane.INFORMATION_MESSAGE);
                     btnCapturar.setText("Capturar");
+                    startPreview(); //Reiniciar preview
                 });
 
             } catch (Exception ex) {
@@ -224,7 +236,7 @@ public class CapturaRostrosForm {
             SwingUtilities.invokeLater(() -> { JFrame f = new JFrame("Captura de Rostros (Híbrido)");
             f.setContentPane(new CapturaRostrosForm().panelPrincipal);
             f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            f.pack();
+            f.setSize(new Dimension(900, 680));
             f.setLocationRelativeTo(null);
             f.setVisible(true); }); }
 }
