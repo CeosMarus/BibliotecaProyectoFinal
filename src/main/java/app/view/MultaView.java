@@ -69,18 +69,18 @@ public class MultaView extends JPanel {
 
     public MultaView() {
         setLayout(new BorderLayout(10, 10));
-        setPreferredSize(new Dimension(900, 600));
+        setPreferredSize(new Dimension(1100, 600));
 
         initComponents();
         cargarClientes();
         cargarTablaMultas();
 
         // Listeners
-        btnGuardar.addActionListener(e -> guardarMulta());
-        btnActualizar.addActionListener(e -> actualizarMulta());
-        btnEliminar.addActionListener(e -> eliminarMulta());
-        btnLimpiar.addActionListener(e -> limpiarCampos());
-        btnExoneraciones.addActionListener(e -> abrirVentanaExoneraciones());
+        btnGuardar.addActionListener(e -> guardarMulta()); //
+        btnActualizar.addActionListener(e -> actualizarMulta()); //
+        btnEliminar.addActionListener(e -> eliminarMulta()); //
+        btnLimpiar.addActionListener(e -> limpiarCampos()); //
+        btnExoneraciones.addActionListener(e -> abrirVentanaExoneraciones()); //
         cmbClientes.addActionListener(e -> actualizarPrestamosPorCliente());
         cmbEstadoPago.addActionListener(e -> {
             if (cmbEstadoPago.getSelectedIndex() == 1) { // 1 - Pagado
