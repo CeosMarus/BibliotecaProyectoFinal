@@ -294,8 +294,10 @@ public class UsuariosForm {
 
     //Abre el formulario de captura facial
     private void abrirCapturaRostro(int idUsuario) {
+        CapturaRostrosForm form = new CapturaRostrosForm();
+        form.setUsuarioId(idUsuario); // agrega este método al formulario
         JFrame f = new JFrame("Captura de Rostros");
-        f.setContentPane(new CapturaRostrosForm(idUsuario).panelPrincipal);
+        f.setContentPane(form.panelPrincipal);
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         f.pack();
         f.setLocationRelativeTo(null);
