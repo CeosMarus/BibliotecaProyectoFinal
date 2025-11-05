@@ -27,7 +27,8 @@ public class CapturaRostrosForm {
 
     private volatile boolean running = false;
     private Thread camThread;
-    private static final String CASCADE_PATH = "src/main/resources/haarcascades/haarcascade_frontalface_default.xml";
+    String CASCADE_PATH = getClass().getResource("/haarcascades/haarcascade_frontalface_default.xml").getPath();
+
     //Constructores
     public CapturaRostrosForm()
     {
@@ -57,7 +58,7 @@ public class CapturaRostrosForm {
 
         String idText = txtIdUsuario.getText().trim();
         if (idText.isEmpty()) {
-            JOptionPane.showMessageDialog(panelPrincipal, "Ingrese o seleccione un usuario primero.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(panelPrincipal, "Seleccione un usuario antes de capturar.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -69,29 +70,49 @@ public class CapturaRostrosForm {
             VideoCapture cam = new VideoCapture(0);
             if (!cam.isOpened()) {
                 setStatus("No se pudo abrir la cámara.");
+                running = false;
                 return;
             }
 
             CascadeClassifier detector = new CascadeClassifier(CASCADE_PATH);
+            if (detector.empty()) {
+                setStatus("No se encontró el clasificador HaarCascade.");
+                cam.release();
+                running = false;
+                return;
+            }
+
             Mat frame = new Mat();
+            long lastUpdate = System.currentTimeMillis();
+            int fpsDelay = 1000 / 15; // Limitar a ~15 FPS
 
             while (running) {
                 if (!cam.read(frame) || frame.empty()) continue;
 
+                // Convertir a gris
                 Mat gray = new Mat();
                 opencv_imgproc.cvtColor(frame, gray, COLOR_BGR2GRAY);
 
+                // Detección de rostros
                 RectVector faces = new RectVector();
                 detector.detectMultiScale(gray, faces);
 
+                // Dibujar rectángulos en preview
                 for (int i = 0; i < faces.size(); i++) {
                     Rect face = faces.get(i);
                     rectangle(frame, face, new Scalar(0, 255, 0, 0), 2, 8, 0);
                 }
 
-                updatePreview(frame);
+                // Mostrar frame cada X ms
+                long now = System.currentTimeMillis();
+                if (now - lastUpdate > fpsDelay) {
+                    updatePreview(frame);
+                    lastUpdate = now;
+                }
 
+                // Si detecta un rostro, procesarlo en otro hilo
                 if (faces.size() > 0) {
+                    running = false;
                     Rect face = faces.get(0);
                     Mat rostro = new Mat(gray, face);
                     opencv_imgproc.resize(rostro, rostro, new Size(200, 200));
@@ -99,27 +120,34 @@ public class CapturaRostrosForm {
                     String ruta = System.getProperty("java.io.tmpdir") + "/face_" + idUsuario + ".jpg";
                     opencv_imgcodecs.imwrite(ruta, rostro);
 
-                    byte[] plantilla = PlantillaFacialUtil.generarPlantilla(ruta);
-                    if (plantilla != null) {
+                    setStatus("Rostro detectado. Procesando plantilla...");
+
+                    // Guardar en segundo plano
+                    new Thread(() -> {
                         try {
-                            new RostroUsuarioDAO().guardarPlantilla(idUsuario, plantilla);
-                            setStatus("Plantilla registrada correctamente.");
+                            byte[] plantilla = PlantillaFacialUtil.generarPlantilla(ruta);
+                            if (plantilla != null) {
+                                new RostroUsuarioDAO().guardarPlantilla(idUsuario, plantilla);
+                                setStatus("Plantilla facial registrada correctamente.");
+                                JOptionPane.showMessageDialog(panelPrincipal,
+                                        "Plantilla registrada correctamente para el usuario ID " + idUsuario);
+                            } else {
+                                setStatus("⚠️ No se pudo generar plantilla válida (rostro borroso o iluminación baja).");
+                            }
                         } catch (Exception e) {
                             setStatus("Error guardando plantilla: " + e.getMessage());
                         }
-                    } else {
-                        setStatus("No se pudo generar plantilla válida.");
-                    }
-
-                    running = false;
+                    }).start();
                     break;
                 }
 
-                try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+                // Pausa pequeña entre frames
+                try { Thread.sleep(40); } catch (InterruptedException ignored) {}
             }
 
             cam.release();
-        });
+            setStatus("Cámara detenida.");
+        }, "CamThread");
 
         camThread.start();
     }
