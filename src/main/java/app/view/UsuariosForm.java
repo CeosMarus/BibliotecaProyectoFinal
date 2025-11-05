@@ -28,6 +28,7 @@ public class UsuariosForm {
     private JButton btnSalir;
     private JTable tbUsuarios;
     private JCheckBox chkMostrar;
+    private JButton btnCapturaRostro;
 
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
     private final DefaultTableModel model = new DefaultTableModel(
@@ -59,7 +60,8 @@ public class UsuariosForm {
         btnCargar.addActionListener(e -> cargarTabla());
         btnLimpiar.addActionListener(e -> limpiarFormulario());
         btnBuscarUsername.addActionListener(e -> onBuscarPorUsername());
-        btnSalir.addActionListener(e -> onSalir()); // ✅ salir agregado
+        btnCapturaRostro.addActionListener(e -> onCapturarRostro());
+        btnSalir.addActionListener(e -> onSalir()); //salir agregado
 
         tbUsuarios.getSelectionModel().addListSelectionListener(e -> {
             if (e.getValueIsAdjusting()) return;
@@ -277,6 +279,29 @@ public class UsuariosForm {
                 break;
             }
         }
+    }
+    //Captura facial para el usuario seleccionado
+    private void onCapturarRostro() {
+        if (selectedId == null) {
+            JOptionPane.showMessageDialog(panelPrincipal,
+                    "Seleccione un usuario antes de capturar el rostro.",
+                    "Sin selección", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        abrirCapturaRostro(selectedId);
+    }
+
+    //Abre el formulario de captura facial
+    private void abrirCapturaRostro(int idUsuario) {
+        CapturaRostrosForm form = new CapturaRostrosForm();
+        form.setUsuarioId(idUsuario); // agrega este método al formulario
+        JFrame f = new JFrame("Captura de Rostros");
+        f.setContentPane(form.panelPrincipal);
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.pack();
+        f.setLocationRelativeTo(null);
+        f.setVisible(true);
     }
 
     /* Salir */
