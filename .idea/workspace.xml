@@ -5,14 +5,32 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4279c361-fc89-4f0f-a275-c6a47f2c0910" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/faces/lbph_model.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/modelos/lbph_model.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dependency-reduced-pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/facerec/FaceAuth.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/facerec/FaceService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/facerec/FaceTrainer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/utility/PlantillaFacialUtil.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/utility/WebcamHelper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/view/CapturaRostrosForm.form" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/view/CapturaRostrosForm.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/view/LoginReconForm.form" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/view/LoginReconForm.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/view/VerificacionFacialForm.form" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/view/VerificacionFacialForm.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/haarcascades/haarcascade_frontalface_default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/uiDesigner.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/modelos/lbph_model.xml" beforeDir="false" afterPath="$PROJECT_DIR$/data/modelos/lbph_model.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/dao/BitacoraInventarioDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/dao/BitacoraInventarioDAO.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/dao/InventarioFisicoDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/dao/InventarioFisicoDAO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/db/Conexion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/db/Conexion.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/dao/RostroUsuarioDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/dao/RostroUsuarioDAO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/dao/UsuarioDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/dao/UsuarioDAO.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/model/BitacoraInventario.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/model/BitacoraInventario.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/model/InventarioFisico.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/model/InventarioFisico.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/AperturaCajaView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/AperturaCajaView.java" afterDir="false" />
@@ -20,7 +38,6 @@
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/AutorForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/AutorForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/BuscarLibroForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/BuscarLibroForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/CajaMovimientoView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/CajaMovimientoView.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/CapturaRostrosForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/CapturaRostrosForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/CategoriaForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/CategoriaForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/ClienteForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/ClienteForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/CompraLibroForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/CompraLibroForm.java" afterDir="false" />
@@ -29,8 +46,8 @@
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/ExoneracionView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/ExoneracionView.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/InventarioForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/InventarioForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/LibroForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/LibroForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/LoginForm.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/LoginForm.form" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/LoginForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/LoginForm.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/LoginReconForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/LoginReconForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/MainMenuForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/MainMenuForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/MenuClienteForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/MenuClienteForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/MisMultasForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/MisMultasForm.java" afterDir="false" />
@@ -41,8 +58,8 @@
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/ReportesForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/ReportesForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/ReservasForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/ReservasForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/SolicitudCompraForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/SolicitudCompraForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/UsuariosForm.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/UsuariosForm.form" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/UsuariosForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/UsuariosForm.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/VerificacionFacialForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/VerificacionFacialForm.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,7 +79,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="branchWilson" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -88,32 +105,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.General.executor": "Run",
-    "Maven.ProyectoFinalBiblioteca [clean].executor": "Run",
-    "Maven.ProyectoFinalBiblioteca [package].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/ProyectosJava/BibliotecaProyectoFinal",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "profiler.jvm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.General.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.ProyectoFinalBiblioteca [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.ProyectoFinalBiblioteca [package].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/ProyectosJava/BibliotecaProyectoFinal&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;profiler.jvm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="General" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="app.view.LoginForm" />
