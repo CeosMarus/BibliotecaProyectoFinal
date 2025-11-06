@@ -19,43 +19,19 @@ public class InventarioFisico {
 
     // ===== ATRIBUTOS =====
 
-    /**
-     * ID único del inventario (generado automáticamente por BD)
-     * - NULL al crear un nuevo inventario
-     * - Se asigna automáticamente al insertar
-     */
     private Integer id;
 
-    /**
-     * Fecha en que se realizó el inventario
-     * Ejemplo: 2024-01-15
-     */
+
     private LocalDate fecha;
 
-    /**
-     * Nombre de la persona responsable del conteo
-     * Puede ser diferente al usuario del sistema
-     * Ejemplo: "Juan Pérez - Bibliotecario"
-     */
+
     private String responsable;
 
-    /**
-     * ID del usuario del sistema que registró el inventario
-     * Referencia a Usuario.id
-     */
     private Integer idUsuario;
 
-    /**
-     * Observaciones generales del inventario
-     * Ejemplo: "Se encontraron 3 libros dañados en Sala A"
-     */
+
     private String observaciones;
 
-    /**
-     * Estado del inventario
-     * - 1 = Activo/Vigente
-     * - 0 = Anulado/Cancelado
-     */
     private int estado;
 
     // Campos adicionales para mostrar en la UI (JOINs)
@@ -71,10 +47,7 @@ public class InventarioFisico {
         this.estado = 1; // Por defecto activo
     }
 
-    /**
-     * Constructor completo (con ID)
-     * Usado al recuperar datos de la BD
-     */
+
     public InventarioFisico(Integer id, LocalDate fecha, String responsable,
                             Integer idUsuario, String observaciones, int estado) {
         this.id = id;

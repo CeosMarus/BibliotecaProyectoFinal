@@ -2,71 +2,26 @@ package app.model;
 
 import java.time.LocalDateTime;
 
-/**
- * Modelo para BitacoraInventario
- *
- * PROPÓSITO:
- * - Registra CADA diferencia encontrada durante un inventario
- * - Mantiene historial completo de cambios en ejemplares
- * - Permite auditoría y trazabilidad
- *
- * CUÁNDO SE USA:
- * 1. Durante un inventario físico (diferencias encontradas)
- * 2. Al cambiar ubicación de un ejemplar
- * 3. Al cambiar estado de un ejemplar (Disponible → Dañado)
- * 4. Al dar de baja un ejemplar
- *
- * EJEMPLO:
- * - "Ejemplar LIB-2024-0045 encontrado dañado, actualizado de 'Disponible' a 'Dañado'"
- * - "Ejemplar LIB-2024-0046 no encontrado en estante, marcado como 'Perdido'"
- * - "Ejemplar LIB-2024-0047 movido de Sala A a Sala B"
- */
+
 public class BitacoraInventario {
 
     // ===== ATRIBUTOS =====
 
-    /**
-     * ID único del registro (generado por BD)
-     */
     private Integer id;
 
-    /**
-     * ID del inventario al que pertenece este registro
-     * Referencia a InventarioFisico.id
-     * - Puede ser NULL si es un cambio fuera de inventario formal
-     */
+
     private Integer idInventario;
 
-    /**
-     * ID del ejemplar afectado
-     * Referencia a Ejemplar.id
-     */
+
     private Integer idEjemplar;
 
-    /**
-     * Descripción de la diferencia encontrada
-     * Ejemplos:
-     * - "Sistema: Disponible | Real: Dañado"
-     * - "No encontrado en ubicación registrada"
-     * - "Código de inventario duplicado"
-     * - "Ubicación incorrecta: estaba en Sala B, no en Sala A"
-     */
+
     private String diferencia;
 
-    /**
-     * Acción correctiva tomada
-     * Ejemplos:
-     * - "Estado actualizado a 'Dañado'"
-     * - "Marcado como 'Perdido'"
-     * - "Ubicación actualizada a Sala B, Estante 5"
-     * - "Ejemplar dado de baja"
-     */
+
     private String accionCorrectiva;
 
-    /**
-     * Fecha y hora exacta del registro
-     * Para trazabilidad completa
-     */
+
     private LocalDateTime fechaRegistro;
 
     // Campos adicionales para mostrar en la UI (JOINs)
@@ -76,9 +31,7 @@ public class BitacoraInventario {
 
     // ===== CONSTRUCTORES =====
 
-    /**
-     * Constructor vacío
-     */
+
     public BitacoraInventario() {
         this.fechaRegistro = LocalDateTime.now(); // Fecha actual por defecto
     }
