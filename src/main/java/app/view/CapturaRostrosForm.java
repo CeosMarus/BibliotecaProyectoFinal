@@ -1,7 +1,6 @@
 package app.view;
 
 import app.dao.RostroUsuarioDAO;
-import app.facerec.FaceService;
 import app.facerec.FaceTrainer;
 import org.bytedeco.opencv.opencv_core.*;
 import org.bytedeco.opencv.opencv_videoio.VideoCapture;
@@ -10,12 +9,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.nio.file.Paths;
 
 import static org.bytedeco.opencv.global.opencv_imgproc.*;
-import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
-import static org.bytedeco.opencv.global.opencv_videoio.CAP_ANY;
-import static org.bytedeco.opencv.global.opencv_videoio.CAP_AVFOUNDATION;
 import static org.bytedeco.opencv.global.opencv_videoio.CAP_DSHOW;
 
 public class CapturaRostrosForm {
@@ -27,10 +22,7 @@ public class CapturaRostrosForm {
     private JLabel lblStatus;
     private JLabel lblPreview;
 
-
-    //Para Mac
-    //private static final int BACKEND = CAP_AVFOUNDATION;
-    //para windows
+    // Backend para Windows
     private static final int BACKEND = CAP_DSHOW;
     private static final int CAMERA_INDEX = 0;
     private volatile boolean running = false;
@@ -41,13 +33,13 @@ public class CapturaRostrosForm {
     // Número fijo de capturas (enrolamiento rápido)
     private static final int NUM_CAPTURAS = 5;
 
-    public CapturaRostrosForm(int userId)
-    {
+    public CapturaRostrosForm(int userId) {
         this();
         this.forcedUserId = userId;
         startPreview();
         txtIdUsuario.setText(String.valueOf(userId));
-        txtIdUsuario.setEditable(false); }
+        txtIdUsuario.setEditable(false);
+    }
 
     public CapturaRostrosForm() {
         panelPrincipal.setPreferredSize(new Dimension(900, 680));
@@ -55,7 +47,6 @@ public class CapturaRostrosForm {
         lblPreview.setHorizontalAlignment(SwingConstants.CENTER);
         lblPreview.setMinimumSize(new Dimension(640, 480));
         lblPreview.setMaximumSize(new Dimension(640, 480));
-        lblPreview.setPreferredSize(new Dimension(640, 480));
         lblPreview.setSize(640, 480);
         setStatus("Listo para capturar rostros");
 
@@ -77,21 +68,19 @@ public class CapturaRostrosForm {
         });
         startPreview();
     }
-    private void startPreview()
-    {
+
+    private void startPreview() {
         if (previewRunning) return;
         previewRunning = true;
         previewThread = new Thread(() -> {
             VideoCapture cam = new VideoCapture(CAMERA_INDEX, BACKEND);
-            if (!cam.isOpened())
-            {
+            if (!cam.isOpened()) {
                 setStatus("No se pudo abrir la webcam");
                 previewRunning = false;
                 return;
             }
             Mat frame = new Mat();
-            while (previewRunning)
-            {
+            while (previewRunning) {
                 if (!cam.read(frame) || frame.empty()) continue;
                 updatePreview(frame);
                 try { Thread.sleep(30); } catch (InterruptedException ignored) {}
@@ -133,13 +122,12 @@ public class CapturaRostrosForm {
                         NUM_CAPTURAS
                 );
 
-                // Capturar rostros y entrenar modelo LBPH
+                // Capturar rostros y actualizar modelo LBPH global
                 File modelFile = trainer.enrolUser(idUsuario, CAMERA_INDEX);
 
-                // Convertir modelo a bytes
+                // Convertir modelo a bytes para guardar respaldo en BD
                 byte[] modeloBytes = readFileToBytes(modelFile);
 
-                // Guardar en BD
                 RostroUsuarioDAO dao = new RostroUsuarioDAO();
                 dao.insertarOActualizar(idUsuario, modeloBytes);
 
@@ -149,7 +137,7 @@ public class CapturaRostrosForm {
                             "Rostro registrado exitosamente.\nPlantilla almacenada en BD.",
                             "Captura de Rostros", JOptionPane.INFORMATION_MESSAGE);
                     btnCapturar.setText("Capturar");
-                    startPreview(); //Reiniciar preview
+                    startPreview(); // Reiniciar preview
                 });
 
             } catch (Exception ex) {
@@ -161,6 +149,7 @@ public class CapturaRostrosForm {
             }
         }).start();
     }
+
     private void updatePreview(Mat bgr) {
         BufferedImage src = matToBufferedImage(bgr);
         if (src == null) return;
@@ -170,6 +159,7 @@ public class CapturaRostrosForm {
         BufferedImage scaled = scaleToFit(src, w, h);
         SwingUtilities.invokeLater(() -> lblPreview.setIcon(new ImageIcon(scaled)));
     }
+
     private BufferedImage matToBufferedImage(Mat mat) {
         if (mat == null || mat.empty()) return null;
         Mat rgb = new Mat();
@@ -181,6 +171,7 @@ public class CapturaRostrosForm {
         image.getRaster().setDataElements(0, 0, w, h, data);
         return image;
     }
+
     private BufferedImage scaleToFit(BufferedImage src, int targetW, int targetH) {
         double arSrc = (double) src.getWidth() / src.getHeight();
         double arDst = (double) targetW / targetH;
@@ -201,6 +192,7 @@ public class CapturaRostrosForm {
     private void setStatus(String s) {
         SwingUtilities.invokeLater(() -> lblStatus.setText(s));
     }
+
     private String getCascadePath() {
         String resourceName = "haarcascades/haarcascade_frontalface_default.xml";
         try (var in = getClass().getClassLoader().getResourceAsStream(resourceName)) {
@@ -225,18 +217,22 @@ public class CapturaRostrosForm {
             return baos.toByteArray();
         }
     }
+
     private int usuarioId;
     public void setUsuarioId(int id) {
         this.usuarioId = id;
         if (txtIdUsuario != null) txtIdUsuario.setText(String.valueOf(id));
     }
-        //Laucher
-        public static void main(String[] args)
-        {
-            SwingUtilities.invokeLater(() -> { JFrame f = new JFrame("Captura de Rostros (Híbrido)");
+
+    // Launcher
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame f = new JFrame("Captura de Rostros (Híbrido)");
             f.setContentPane(new CapturaRostrosForm().panelPrincipal);
             f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             f.setSize(new Dimension(900, 680));
             f.setLocationRelativeTo(null);
-            f.setVisible(true); }); }
+            f.setVisible(true);
+        });
+    }
 }

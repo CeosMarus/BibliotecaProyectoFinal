@@ -24,6 +24,7 @@ public class FaceAuth {
     private CascadeClassifier detector;
     private double threshold;
     private static final double LUZ_MINIMA = 60.0;
+    private static final int MIN_FACE_SIZE = 80; // tamaño mínimo en píxeles
 
     /**
      * Constructor
@@ -85,10 +86,20 @@ public class FaceAuth {
                         Rect r = rostros.get(i);
                         rectangle(frame, r, new Scalar(0, 255, 0, 0));
 
+                        // Validar tamaño mínimo del rostro
+                        if (r.width() < MIN_FACE_SIZE || r.height() < MIN_FACE_SIZE) {
+                            putText(frame, "Rostro demasiado pequeño", new Point(20, 50),
+                                    FONT_HERSHEY_SIMPLEX, 0.6, new Scalar(0, 0, 255, 0));
+                            continue;
+                        }
+
                         Mat rostro = new Mat(gray, r);
+                        resize(rostro, rostro, new Size(160, 160)); // normalizar tamaño
+
+                        // Validar iluminación
                         Scalar brillo = mean(rostro);
                         if (brillo.get(0) < LUZ_MINIMA) {
-                            putText(frame, "Iluminacion insuficiente", new Point(20, 50),
+                            putText(frame, "Iluminacion insuficiente", new Point(20, 70),
                                     FONT_HERSHEY_SIMPLEX, 0.6, new Scalar(0, 0, 255, 0));
                             continue;
                         }

@@ -6,7 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="4279c361-fc89-4f0f-a275-c6a47f2c0910" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/modelos/lbph_model.xml" beforeDir="false" afterPath="$PROJECT_DIR$/data/modelos/lbph_model.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/facerec/FaceAuth.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/facerec/FaceAuth.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/facerec/FaceTrainer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/facerec/FaceTrainer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/CapturaRostrosForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/CapturaRostrosForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/LoginReconForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/LoginReconForm.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,12 +41,12 @@
     &quot;assignee&quot;: &quot;DU1T&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/CeosMarus/BibliotecaProyectoFinal.git&quot;,
-    &quot;accountId&quot;: &quot;0c5426f3-552a-43b5-8733-0b035e2975b9&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/CeosMarus/BibliotecaProyectoFinal",
+    "accountId": "0c5426f3-552a-43b5-8733-0b035e2975b9"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 0
@@ -60,6 +64,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "branchLuis",
+    "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -74,12 +79,6 @@
       <option name="MAIN_CLASS_NAME" value="app.view.LoginForm" />
       <module name="ProyectoFinalBiblioteca" />
       <option name="VM_PARAMETERS" value="--enable-native-access=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="ProyectoFinalBiblioteca" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -106,6 +105,7 @@
       <option name="presentableId" value="Default" />
       <updated>1762316318297</updated>
       <workItem from="1762316320092" duration="15482000" />
+      <workItem from="1762376422679" duration="1968000" />
     </task>
     <servers />
   </component>

@@ -64,7 +64,7 @@ public class FaceTrainer {
                 etiquetas.add(userId);
                 capturadas++;
 
-                System.out.println("📸 Captura " + capturadas + "/" + numCapturas);
+                System.out.println("Captura " + capturadas + "/" + numCapturas);
 
                 if (capturadas >= numCapturas) break;
                 Thread.sleep(500);
@@ -73,8 +73,16 @@ public class FaceTrainer {
 
         camera.release();
 
-        // Entrenar el modelo LBPH solo con los rostros en memoria
+        // Crear o cargar modelo global
+        File modelFile = new File("data/modelos/lbph_model.xml");
         LBPHFaceRecognizer recognizer = LBPHFaceRecognizer.create(1, 8, 8, 8, 75);
+
+        if (modelFile.exists()) {
+            recognizer.read(modelFile.getAbsolutePath());
+            System.out.println("Modelo existente cargado");
+        }
+
+        // Preparar imágenes y etiquetas
         MatVector imagenes = new MatVector(rostros.size());
         Mat labels = new Mat(rostros.size(), 1, opencv_core.CV_32SC1);
         IntBuffer etiquetasBuf = labels.createBuffer();
@@ -84,14 +92,19 @@ public class FaceTrainer {
             etiquetasBuf.put(i, etiquetas.get(i));
         }
 
-        recognizer.train(imagenes, labels);
+        // Actualizar modelo con nuevos datos
+        if (modelFile.exists()) {
+            recognizer.update(imagenes, labels);
+            System.out.println("Modelo LBPH actualizado con usuario " + userId);
+        } else {
+            recognizer.train(imagenes, labels);
+            System.out.println("Modelo LBPH entrenado desde cero con usuario " + userId);
+        }
 
-        // Guardar el modelo en un archivo temporal (para luego convertirlo a bytes)
-        File tempModel = File.createTempFile("modelo_" + userId + "_", ".xml");
-        recognizer.save(tempModel.getAbsolutePath());
-        tempModel.deleteOnExit();
+        // Guardar modelo global
+        modelFile.getParentFile().mkdirs();
+        recognizer.save(modelFile.getAbsolutePath());
 
-        System.out.println("✅ Modelo LBPH entrenado para usuario " + userId);
-        return tempModel;
+        return modelFile;
     }
 }
