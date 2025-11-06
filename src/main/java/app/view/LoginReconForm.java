@@ -121,40 +121,40 @@ public class LoginReconForm extends JFrame {
                     65.0
             );
 
-            // Inicia la cámara y predice ID del usuario
             Integer id = auth.predictUserIdFromWebcam(0, 30);
             if (id == null) {
-                setStatus("No se reconoció el rostro.");
+                setStatus("No se reconoció el rostro (iluminación insuficiente o rostro inválido).");
                 return;
             }
 
             Usuario u = new UsuarioDAO().buscarPorId(id);
             if (u == null) {
-                setStatus("Usuario no encontrado.");
+                setStatus("Usuario no encontrado en BD.");
                 return;
             }
 
-            //Guardamos la sesión antes de abrir el menú
             Sesion.login(u);
             JOptionPane.showMessageDialog(this, "Bienvenido " + u.getNombre());
 
-            //Cerramos esta ventana y todas las relacionadas con el login
-            Window[] windows = Window.getWindows();
-            for (Window w : windows) {
-                if (w instanceof JFrame && w.isVisible() && !(w instanceof LoginReconForm)) {
-                    w.dispose();
-                }
-            }
-
-            //Ahora abrimos el menú principal con la sesión activa
+            cerrarVentanasLogin();
             abrirMenu();
 
         } catch (Exception ex) {
             ex.printStackTrace();
             setStatus("Error: " + ex.getMessage());
-            startPreview(); //Reiniciar en caso de error
+            startPreview(); // Reiniciar en caso de error
         }
     }
+
+    private void cerrarVentanasLogin() {
+        Window[] windows = Window.getWindows();
+        for (Window w : windows) {
+            if (w instanceof JFrame && w.isVisible() && !(w instanceof LoginReconForm)) {
+                w.dispose();
+            }
+        }
+    }
+
 
     private void abrirMenu() {
         JFrame f = new JFrame("Menú Principal – Biblioteca");
