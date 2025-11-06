@@ -5,12 +5,44 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4279c361-fc89-4f0f-a275-c6a47f2c0910" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/uiDesigner.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/modelos/lbph_model.xml" beforeDir="false" afterPath="$PROJECT_DIR$/data/modelos/lbph_model.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/facerec/FaceAuth.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/facerec/FaceAuth.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/facerec/FaceTrainer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/facerec/FaceTrainer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/dao/BitacoraInventarioDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/dao/BitacoraInventarioDAO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/dao/InventarioFisicoDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/dao/InventarioFisicoDAO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/db/Conexion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/db/Conexion.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/model/BitacoraInventario.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/model/BitacoraInventario.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/model/InventarioFisico.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/model/InventarioFisico.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/AperturaCajaView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/AperturaCajaView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/AuditoriaForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/AuditoriaForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/AutorForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/AutorForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/BuscarLibroForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/BuscarLibroForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/CajaMovimientoView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/CajaMovimientoView.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/CapturaRostrosForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/CapturaRostrosForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/CategoriaForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/CategoriaForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/ClienteForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/ClienteForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/CompraLibroForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/CompraLibroForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/DevolucionForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/DevolucionForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/EjemplarForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/EjemplarForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/ExoneracionView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/ExoneracionView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/InventarioForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/InventarioForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/LibroForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/LibroForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/LoginForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/LoginForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/view/LoginReconForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/LoginReconForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/MainMenuForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/MainMenuForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/MenuClienteForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/MenuClienteForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/MisMultasForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/MisMultasForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/MisPrestamosForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/MisPrestamosForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/MisReservas.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/MisReservas.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/MultaView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/MultaView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/PrestamosForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/PrestamosForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/ReportesForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/ReportesForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/ReservasForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/ReservasForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/SolicitudCompraForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/SolicitudCompraForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/UsuariosForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/UsuariosForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/view/VerificacionFacialForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/view/VerificacionFacialForm.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,12 +73,12 @@
     &quot;assignee&quot;: &quot;DU1T&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/CeosMarus/BibliotecaProyectoFinal",
-    "accountId": "0c5426f3-552a-43b5-8733-0b035e2975b9"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/CeosMarus/BibliotecaProyectoFinal.git&quot;,
+    &quot;accountId&quot;: &quot;4e93cf32-d35b-4818-a696-3a4b07428d06&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 0
@@ -59,18 +91,26 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.General.executor": "Run",
+    "Maven.ProyectoFinalBiblioteca [clean].executor": "Run",
+    "Maven.ProyectoFinalBiblioteca [package].executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "branchLuis",
+    "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/ProyectosJava/BibliotecaProyectoFinal",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "profiler.jvm",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -92,8 +132,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.26830.84" />
-        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-IU-252.26830.84" />
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.28774.11" />
+        <option value="bundled-js-predefined-d6986cc7102b-09060db00ec0-JavaScript-IU-251.28774.11" />
       </set>
     </attachedChunks>
   </component>
@@ -106,10 +146,18 @@
       <updated>1762316318297</updated>
       <workItem from="1762316320092" duration="15482000" />
       <workItem from="1762376422679" duration="1968000" />
+      <workItem from="1762401759702" duration="3809000" />
+      <workItem from="1762405681160" duration="296000" />
+      <workItem from="1762406141332" duration="1393000" />
+      <workItem from="1762407588952" duration="6086000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

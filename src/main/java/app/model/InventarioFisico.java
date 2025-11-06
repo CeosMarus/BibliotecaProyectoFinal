@@ -2,47 +2,13 @@ package app.model;
 
 import java.time.LocalDate;
 
-/**
- * Modelo para InventarioFisico
- *
- * PROPÓSITO:
- * - Representa un CONTEO FÍSICO de la biblioteca
- * - Se crea cada vez que haces una auditoría/inventario
- * - Permite rastrear QUIÉN y CUÁNDO se hizo el conteo
- *
- * EJEMPLO DE USO:
- * - "Inventario mensual de Enero 2024"
- * - "Auditoría anual - Sala de Referencias"
- * - "Conteo extraordinario por faltantes"
- */
 public class InventarioFisico {
 
     // ===== ATRIBUTOS =====
 
-    /**
-     * ID único del inventario (generado automáticamente por BD)
-     * - NULL al crear un nuevo inventario
-     * - Se asigna automáticamente al insertar
-     */
     private Integer id;
-
-    /**
-     * Fecha en que se realizó el inventario
-     * Ejemplo: 2024-01-15
-     */
     private LocalDate fecha;
-
-    /**
-     * Nombre de la persona responsable del conteo
-     * Puede ser diferente al usuario del sistema
-     * Ejemplo: "Juan Pérez - Bibliotecario"
-     */
     private String responsable;
-
-    /**
-     * ID del usuario del sistema que registró el inventario
-     * Referencia a Usuario.id
-     */
     private Integer idUsuario;
 
     /**
@@ -51,11 +17,7 @@ public class InventarioFisico {
      */
     private String observaciones;
 
-    /**
-     * Estado del inventario
-     * - 1 = Activo/Vigente
-     * - 0 = Anulado/Cancelado
-     */
+
     private int estado;
 
     // Campos adicionales para mostrar en la UI (JOINs)
@@ -63,10 +25,6 @@ public class InventarioFisico {
 
     // ===== CONSTRUCTORES =====
 
-    /**
-     * Constructor vacío
-     * Usado por frameworks y para crear objetos nuevos
-     */
     public InventarioFisico() {
         this.estado = 1; // Por defecto activo
     }

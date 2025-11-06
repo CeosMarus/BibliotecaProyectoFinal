@@ -142,16 +142,6 @@ public class BitacoraInventarioDAO {
         return lista;
     }
 
-    /**
-     * LISTAR historial de un ejemplar específico
-     *
-     * ÚTIL PARA:
-     * - Ver todos los cambios de un libro específico
-     * - Trazabilidad completa de un ejemplar
-     *
-     * @param idEjemplar ID del ejemplar
-     * @return Historial completo del ejemplar
-     */
     public List<BitacoraInventario> listarPorEjemplar(int idEjemplar) {
         String sql = "SELECT b.*, " +
                 "       e.codigoInventario, " +

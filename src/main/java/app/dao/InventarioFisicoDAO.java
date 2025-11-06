@@ -8,27 +8,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * DAO para gestión de Inventarios Físicos
- *
- * RESPONSABILIDADES:
- * - Crear registros de inventarios/auditorías
- * - Listar inventarios con información del usuario
- * - Buscar inventarios por fecha o responsable
- * - Anular inventarios si es necesario
- */
+
 public class InventarioFisicoDAO {
 
-    /**
-     * INSERTAR un nuevo inventario físico
-     *
-     * CUÁNDO SE USA:
-     * - Al iniciar un nuevo conteo físico
-     * - Al crear una auditoría programada
-     *
-     * @param inventario Objeto con los datos del inventario
-     * @return ID generado del inventario, -1 si falla
-     */
     public int insertar(InventarioFisico inventario) {
         // Validación básica
         if (inventario == null || inventario.getResponsable().isEmpty()) {
@@ -68,16 +50,6 @@ public class InventarioFisicoDAO {
         return -1;
     }
 
-    /**
-     * ACTUALIZAR un inventario existente
-     *
-     * CUÁNDO SE USA:
-     * - Al modificar observaciones de un inventario
-     * - Al cambiar el responsable
-     *
-     * @param inventario Objeto con los datos actualizados
-     * @return true si se actualizó correctamente
-     */
     public boolean actualizar(InventarioFisico inventario) {
         if (inventario == null || inventario.getId() == null) {
             throw new IllegalArgumentException("ID del inventario es obligatorio");
@@ -105,16 +77,6 @@ public class InventarioFisicoDAO {
         }
     }
 
-    /**
-     * ANULAR un inventario (cambiar estado a 0)
-     *
-     * CUÁNDO SE USA:
-     * - Cuando un inventario fue registrado por error
-     * - Cuando se cancela un conteo en progreso
-     *
-     * @param id ID del inventario a anular
-     * @return true si se anuló correctamente
-     */
     public boolean anular(int id) {
         String sql = "UPDATE InventarioFisico SET estado = 0 WHERE id = ?";
 

@@ -154,36 +154,85 @@ public class MultaView extends JPanel {
         int row = 0;
 
         // Fila 0: ID Multa (Nuevo)
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.WEST; panelCampos.add(new JLabel("ID Multa:"), gbc);
-        gbc.gridx = 1; gbc.gridy = row++; gbc.weightx = 1.0; panelCampos.add(txtIdMulta, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.anchor = GridBagConstraints.WEST;
+        panelCampos.add(new JLabel("ID Multa:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        gbc.weightx = 1.0;
+        panelCampos.add(txtIdMulta, gbc);
 
         // Fila 1: Cliente
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.WEST; panelCampos.add(new JLabel("Cliente:"), gbc);
-        gbc.gridx = 1; gbc.gridy = row++; gbc.weightx = 1.0; panelCampos.add(cmbClientes, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.anchor = GridBagConstraints.WEST;
+        panelCampos.add(new JLabel("Cliente:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        gbc.weightx = 1.0;
+        panelCampos.add(cmbClientes, gbc);
 
         // Fila 2: Préstamo
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.WEST; panelCampos.add(new JLabel("Préstamo Activo:"), gbc);
-        gbc.gridx = 1; gbc.gridy = row++; gbc.weightx = 1.0; panelCampos.add(cmbPrestamos, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.anchor = GridBagConstraints.WEST;
+        panelCampos.add(new JLabel("Préstamo Activo:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        gbc.weightx = 1.0;
+        panelCampos.add(cmbPrestamos, gbc);
 
         // Fila 3: Monto
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.WEST; panelCampos.add(new JLabel("Monto:"), gbc);
-        gbc.gridx = 1; gbc.gridy = row++; gbc.weightx = 1.0; panelCampos.add(txtMonto, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.anchor = GridBagConstraints.WEST;
+        panelCampos.add(new JLabel("Monto:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        gbc.weightx = 1.0;
+        panelCampos.add(txtMonto, gbc);
 
         // Fila 4: Días Atraso
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.WEST; panelCampos.add(new JLabel("Días Atraso:"), gbc);
-        gbc.gridx = 1; gbc.gridy = row++; gbc.weightx = 1.0; panelCampos.add(txtDiasAtraso, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.anchor = GridBagConstraints.WEST;
+        panelCampos.add(new JLabel("Días Atraso:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        gbc.weightx = 1.0;
+        panelCampos.add(txtDiasAtraso, gbc);
 
         // Fila 5: Estado Pago
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.WEST; panelCampos.add(new JLabel("Estado de Pago:"), gbc);
-        gbc.gridx = 1; gbc.gridy = row++; gbc.weightx = 1.0; panelCampos.add(cmbEstadoPago, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.anchor = GridBagConstraints.WEST;
+        panelCampos.add(new JLabel("Estado de Pago:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        gbc.weightx = 1.0;
+        panelCampos.add(cmbEstadoPago, gbc);
 
         // Fila 6: Fecha Pago
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.WEST; panelCampos.add(new JLabel("Fecha Pago (YYYY-MM-DD):"), gbc);
-        gbc.gridx = 1; gbc.gridy = row++; gbc.weightx = 1.0; panelCampos.add(txtFechaPago, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.anchor = GridBagConstraints.WEST;
+        panelCampos.add(new JLabel("Fecha Pago (YYYY-MM-DD):"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        gbc.weightx = 1.0;
+        panelCampos.add(txtFechaPago, gbc);
 
         // Fila 7: Observaciones
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.NORTHWEST; panelCampos.add(new JLabel("Observaciones:"), gbc);
-        gbc.gridx = 1; gbc.gridy = row++; gbc.weightx = 1.0; gbc.weighty = 1.0; panelCampos.add(scrollObservaciones, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        panelCampos.add(new JLabel("Observaciones:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        panelCampos.add(scrollObservaciones, gbc);
 
         panel.add(panelCampos, BorderLayout.CENTER);
 
@@ -299,7 +348,9 @@ public class MultaView extends JPanel {
         }
     }
 
-    /** Intenta seleccionar un ItemDesplegable por su ID. **/
+    /**
+     * Intenta seleccionar un ItemDesplegable por su ID.
+     **/
     private void seleccionarItemPorId(JComboBox<ItemDesplegable> cmb, int id) {
         for (int i = 0; i < cmb.getItemCount(); i++) {
             ItemDesplegable item = cmb.getItemAt(i);
@@ -313,7 +364,9 @@ public class MultaView extends JPanel {
         }
     }
 
-    /** Controla el estado de los botones Actualizar/Eliminar. **/
+    /**
+     * Controla el estado de los botones Actualizar/Eliminar.
+     **/
     private void actualizarEstadoBotones(boolean habilitarEdicion) {
         btnActualizar.setEnabled(habilitarEdicion);
         btnEliminar.setEnabled(habilitarEdicion);
@@ -515,7 +568,9 @@ public class MultaView extends JPanel {
 
     // LÓGICA DE CARGA Y CASCADA DE COMBOBOXES
 
-    /** Carga todos los clientes activos. **/
+    /**
+     * Carga todos los clientes activos.
+     **/
     private void cargarClientes() {
         cmbClientes.removeAllItems();
         try {
@@ -523,8 +578,8 @@ public class MultaView extends JPanel {
 
             cmbClientes.addItem(new ItemDesplegable(0, "--- Seleccione un Cliente ---"));
 
-            for(Cliente c : listaClientes) {
-                if(c.getEstado() == 1) {
+            for (Cliente c : listaClientes) {
+                if (c.getEstado() == 1) {
                     String descripcion = c.getNombre() + " (NIT: " + c.getNit() + ")";
                     cmbClientes.addItem(new ItemDesplegable(c.getId(), descripcion));
                 }
@@ -536,7 +591,9 @@ public class MultaView extends JPanel {
         }
     }
 
-    /** Actualiza el ComboBox de préstamos activos al cambiar el cliente. **/
+    /**
+     * Actualiza el ComboBox de préstamos activos al cambiar el cliente.
+     **/
     private void actualizarPrestamosPorCliente() {
         cmbPrestamos.removeAllItems();
         ItemDesplegable clienteSeleccionado = (ItemDesplegable) cmbClientes.getSelectedItem();
@@ -589,5 +646,24 @@ public class MultaView extends JPanel {
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
     }
 }

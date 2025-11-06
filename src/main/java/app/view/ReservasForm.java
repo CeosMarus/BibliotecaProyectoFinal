@@ -9,7 +9,9 @@ import app.model.Libro;
 import app.model.Reserva;
 
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.StyleContext;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -18,8 +20,7 @@ import java.util.*;
 import java.util.List;
 import java.util.Timer;
 
-public class ReservasForm
-{
+public class ReservasForm {
     private JButton btnConfirmar;
     private JButton btnActualizar;
     private JButton btnCargar;
@@ -44,17 +45,15 @@ public class ReservasForm
 
     //Definimos la estructura de nuestra tabla
     private final DefaultTableModel model = new DefaultTableModel(
-            new Object[]{"ID", "Cliente ", "Nit", "Libro" , "Fecha Reserva", "Estado", "Posicion"}, 0
-    )
-    { //Evitamos que las celdas sean editables
+            new Object[]{"ID", "Cliente ", "Nit", "Libro", "Fecha Reserva", "Estado", "Posicion"}, 0
+    ) { //Evitamos que las celdas sean editables
         @Override
         public boolean isCellEditable(int row, int column) {
             return false; // ninguna celda editable
         }
     };
 
-    public  ReservasForm()
-    {
+    public ReservasForm() {
         //Dimensiones de la ventana
         panelPrincipal.setPreferredSize(new Dimension(900, 600));
         //establecemos el modelo de la tabla
@@ -76,6 +75,7 @@ public class ReservasForm
         //Iniciar el Timer al construir el formulario
         iniciarTimerVencidas();
     }
+
     //CARGAR CLIENTES ACTIVOS
     private void cargarClientesActivos() {
         cboCliente.setRenderer(new DefaultListCellRenderer() {
@@ -103,6 +103,7 @@ public class ReservasForm
             JOptionPane.showMessageDialog(null, "Error al listar clientes: " + e.getMessage());
         }
     }
+
     //Salir
     private void onSalir() {
         if (JOptionPane.showConfirmDialog(panelPrincipal, "¿Deseas cerrar el formulario?",
@@ -158,6 +159,7 @@ public class ReservasForm
             JOptionPane.showMessageDialog(null, "Error al cargar reservas: " + e.getMessage());
         }
     }
+
     // ELIMINAR RESERVA SELECCIONADA
     private void eliminarReserva() {
         int fila = tblReservas.getSelectedRow();
@@ -190,8 +192,7 @@ public class ReservasForm
                         reservaDAO.actualizarEstadoReserva(idSiguiente, 2); // 2 = Ejemplar Disponible
                         JOptionPane.showMessageDialog(null,
                                 "El siguiente cliente en la cola fue notificado (Reserva disponible).");
-                        if (Sesion.hasRole("Bibliotecario"))
-                        {
+                        if (Sesion.hasRole("Bibliotecario")) {
                             JOptionPane.showMessageDialog(
                                     null,
                                     "El libro '" + tituloLibro + "' ahora está disponible para el siguiente cliente en la cola.",
@@ -201,9 +202,9 @@ public class ReservasForm
                         }
                     }
                 }
-                } catch (SQLException e) {
-                    JOptionPane.showMessageDialog(null, "Error al eliminar: " + e.getMessage());
-                }
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(null, "Error al eliminar: " + e.getMessage());
+            }
         }
     }
 
@@ -224,7 +225,7 @@ public class ReservasForm
             Reserva nueva = new Reserva();
             nueva.setIdCliente(cliente.getId());
             nueva.setIdLibro(idLibro);
-            nueva.setFechaReserva(new java.util.Date());
+            nueva.setFechaReserva(new Date());
 
             if (disponibles > 0) {
                 //Hay ejemplares disponibles
@@ -302,14 +303,13 @@ public class ReservasForm
                                 && horasTranscurridas(r.getFechaReserva(), ahora) >= 24) {
                             reservaDAO.actualizarEstadoReserva(r.getId(), 3); // 3 = Vencida
                             System.out.println("Reserva ID " + r.getId() + " marcada como VENCIDA.");
-                            if (Sesion.hasRole("Bibliotecario"))
-                            {
+                            if (Sesion.hasRole("Bibliotecario")) {
                                 SwingUtilities.invokeLater(() ->
-                                JOptionPane.showMessageDialog(
-                                        null,
-                                "La reserva ID: " + r.getId()+ "' ha vencido.",
-                                "Aviso de reserva vencida",
-                                JOptionPane.WARNING_MESSAGE));
+                                        JOptionPane.showMessageDialog(
+                                                null,
+                                                "La reserva ID: " + r.getId() + "' ha vencido.",
+                                                "Aviso de reserva vencida",
+                                                JOptionPane.WARNING_MESSAGE));
                             }
                         }
                     }
@@ -325,6 +325,7 @@ public class ReservasForm
         long diffMs = fin.getTime() - inicio.getTime();
         return diffMs / (1000 * 60 * 60);
     }
+
     private void abrirPrestamos() {
         JFrame f = new JFrame("Préstamos");
         f.setContentPane(new PrestamosForm().panelPrincipal);
@@ -333,6 +334,7 @@ public class ReservasForm
         f.setLocationRelativeTo(null);
         f.setVisible(true);
     }
+
     //Launcher
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -343,6 +345,91 @@ public class ReservasForm
             f.setLocationRelativeTo(null);
             f.setVisible(true);
         });
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        panelPrincipal = new JPanel();
+        panelPrincipal.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(7, 3, new Insets(8, 8, 8, 8), -1, -1));
+        btnCargar = new JButton();
+        btnCargar.setText("Cargar");
+        panelPrincipal.add(btnCargar, new com.intellij.uiDesigner.core.GridConstraints(4, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
+        final JLabel label1 = new JLabel();
+        Font label1Font = this.$$$getFont$$$("Arista Pro Light", -1, 18, label1.getFont());
+        if (label1Font != null) label1.setFont(label1Font);
+        label1.setText("Reservas \uD83D\uDCDE");
+        panelPrincipal.add(label1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 3, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label2 = new JLabel();
+        label2.setText("Cliente:");
+        panelPrincipal.add(label2, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        cboCliente = new JComboBox();
+        panelPrincipal.add(cboCliente, new com.intellij.uiDesigner.core.GridConstraints(1, 1, 1, 2, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label3 = new JLabel();
+        label3.setText("NIT:");
+        panelPrincipal.add(label3, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label4 = new JLabel();
+        label4.setText("Libro");
+        panelPrincipal.add(label4, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        txtNit = new JTextField();
+        txtNit.setEditable(false);
+        panelPrincipal.add(txtNit, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 2, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        cboLibro = new JComboBox();
+        panelPrincipal.add(cboLibro, new com.intellij.uiDesigner.core.GridConstraints(3, 1, 1, 2, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        panelPrincipal.add(scrollPane1, new com.intellij.uiDesigner.core.GridConstraints(5, 0, 1, 3, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        tblReservas = new JTable();
+        scrollPane1.setViewportView(tblReservas);
+        btnEliminar = new JButton();
+        btnEliminar.setText("Eliminar");
+        panelPrincipal.add(btnEliminar, new com.intellij.uiDesigner.core.GridConstraints(4, 2, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        btnConfirmar = new JButton();
+        btnConfirmar.setText("Confirmar");
+        panelPrincipal.add(btnConfirmar, new com.intellij.uiDesigner.core.GridConstraints(4, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        btnSalir = new JButton();
+        btnSalir.setText("Salir");
+        panelPrincipal.add(btnSalir, new com.intellij.uiDesigner.core.GridConstraints(6, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
+        if (currentFont == null) return null;
+        String resultName;
+        if (fontName == null) {
+            resultName = currentFont.getName();
+        } else {
+            Font testFont = new Font(fontName, Font.PLAIN, 10);
+            if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+                resultName = fontName;
+            } else {
+                resultName = currentFont.getName();
+            }
+        }
+        Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+        boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
+        Font fontWithFallback = isMac ? new Font(font.getFamily(), font.getStyle(), font.getSize()) : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
+        return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return panelPrincipal;
     }
 }
 
