@@ -28,7 +28,7 @@ El proyecto se comparte en dos formatos:
    - Contiene todas las dependencias integradas.  
    - Se ejecuta con:
      ```bash
-     java -jar ProyectoFinalBiblioteca-1.0-SNAPSHOT-shaded.jar
+     java -jar ProyectoFinalBiblioteca-1.0-SNAPSHOT.jar
      ```
 
 2. **Ejecutable `.exe` (Windows)**  
